@@ -52,6 +52,16 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
     setIsModalOpen(true);
   };
 
+  // Debounced check for availability
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (subjectInput.length > 1) {
+        checkWhosFree(subjectInput);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [subjectInput]);
+
   // Check backend for who's free
   const checkWhosFree = async (subject: string) => {
     if (!currentSlot) return;
@@ -208,7 +218,6 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
                       placeholder="e.g. ADVANCED CALCULUS" 
                       value={subjectInput}
                       onChange={(e) => setSubjectInput(e.target.value.toUpperCase())}
-                      onBlur={() => checkWhosFree(subjectInput)}
                       className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 py-6 pl-16 pr-6 rounded-3xl font-black text-sm uppercase tracking-tight focus:border-indigo-500 focus:outline-none transition-all"
                     />
                  </div>
