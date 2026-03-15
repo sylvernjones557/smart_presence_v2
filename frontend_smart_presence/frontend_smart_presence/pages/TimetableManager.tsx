@@ -133,14 +133,16 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
         ))}
       </div>
 
-      {/* Day Picker Matrix */}
-      <div className="bg-white dark:bg-slate-900 p-2 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm flex">
+      {/* Day Picker Matrix (Compact for Mobile) */}
+      <div className="bg-slate-100 dark:bg-slate-900/50 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 flex mx-1">
         {days.map((day, i) => (
           <button
             key={day}
             onClick={() => setSelectedDay(i + 1)}
-            className={`flex-1 py-4 rounded-2xl text-[10px] font-bold tracking-widest transition-all ${
-              selectedDay === i + 1 ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-lg' : 'text-slate-400'
+            className={`flex-1 py-3 rounded-xl text-[9px] font-black tracking-widest transition-all ${
+              selectedDay === i + 1 
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+              : 'text-slate-400 dark:text-slate-600'
             }`}
           >
             {day.substring(0, 3).toUpperCase()}
@@ -149,43 +151,38 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
       </div>
 
       {/* Slots Grid */}
-      <div className="space-y-6">
+      <div className="space-y-4 px-1">
         {[1, 2, 3, 4, 5, 6].map(period => {
           const entry = timetableEntries.find(e => e.period === period);
           return (
-            <div key={period} className="group relative">
-              <div className="absolute -left-2 top-0 bottom-0 w-1 bg-indigo-500/10 group-hover:bg-indigo-500/40 rounded-full transition-all"></div>
-              
+            <div key={period} className="relative">
               {entry ? (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-6 relative overflow-hidden group-hover:border-indigo-500 transition-all">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 font-black text-xl border border-indigo-100 dark:border-indigo-800/50">
+                <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 sm:gap-6 relative overflow-hidden group-hover:border-indigo-500 transition-all">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 font-black text-lg border border-indigo-100 dark:border-indigo-800/50 shrink-0">
                     {period}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                       <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-500/10 px-2 py-0.5 rounded-lg">VERIFIED</span>
-                    </div>
-                    <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase leading-none truncate">{entry.subject}</h4>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                       <User size={12} className="text-indigo-600" /> {entry.staff_name || 'Staff Linked'}
+                    <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase leading-tight truncate">{entry.subject}</h4>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1 flex items-center gap-1.5 truncate">
+                       <User size={10} className="text-indigo-600" /> {entry.staff_name || 'Staff Linked'}
                     </p>
                   </div>
                   <button 
                     onClick={() => handleDelete(entry.id)}
-                    className="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all tap-active"
+                    className="w-9 h-9 sm:w-10 sm:h-10 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all tap-active shrink-0"
                   >
-                    <X size={18} />
+                    <X size={16} />
                   </button>
                 </div>
               ) : (
                 <button 
                   onClick={() => handleOpenAdd(period)}
-                  className="w-full bg-slate-50/50 dark:bg-slate-950/20 border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 text-slate-300 dark:text-slate-700 hover:border-indigo-500 hover:text-indigo-500 transition-all tap-active group"
+                  className="w-full bg-slate-50/30 dark:bg-slate-900/10 border-2 border-dashed border-slate-200 dark:border-slate-800 py-6 sm:py-8 rounded-[2rem] flex flex-col items-center justify-center gap-2 text-slate-300 dark:text-slate-700 hover:border-indigo-500 hover:text-indigo-500 transition-all tap-active group"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <Plus size={24} />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <Plus size={20} />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em]">Assign Period {period}</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Open Slot {period}</span>
                 </button>
               )}
             </div>

@@ -176,10 +176,16 @@ def finalize_session(
 
     # Collect present student names for the summary
     present_details = []
+    # Test Class optimization: Use a dict for O(1) lookup during summary generation
+    present_ids_set = set(present_ids)
     for student in all_students:
         sid = str(student.id)
-        if sid in present_ids:
-            present_details.append({"id": sid, "name": student.name})
+        if sid in present_ids_set:
+            present_details.append({
+                "id": sid, 
+                "name": student.name,
+                "avatar": student.avatar_url or f"https://ui-avatars.com/api/?name={student.name.replace(' ', '+')}&background=137fec&color=fff&size=150&bold=true"
+            })
 
     return {
         "message": "Session finalized",
