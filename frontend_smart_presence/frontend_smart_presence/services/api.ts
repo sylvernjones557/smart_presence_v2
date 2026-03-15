@@ -154,6 +154,20 @@ export const data = {
     getClassScheduleToday: async (classId: string) => {
         const response = await api.get(`/classes/${classId}/schedule/today`);
         return response.data;
+    },
+    checkStaffAvailability: async (day: number, period: number, subject?: string) => {
+        const response = await api.get('/timetable/check-availability', {
+            params: { day_of_week: day, period, subject }
+        });
+        return response.data;
+    },
+    addTimetable: async (entry: any) => {
+        const response = await api.post('/timetable/', entry);
+        return response.data;
+    },
+    deleteTimetable: async (entryId: string) => {
+        const response = await api.delete(`/timetable/${entryId}`);
+        return response.data;
     }
 };
 

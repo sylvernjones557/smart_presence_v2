@@ -369,10 +369,11 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <QuickAction label="Classes" icon={Layers} color="bg-amber-600" onClick={() => onNavigate('/classes')} />
         <QuickAction label="Students" icon={Users} color="bg-blue-600" onClick={() => onNavigate('/students')} />
         <QuickAction label="Teachers" icon={GraduationCap} color="bg-purple-600" onClick={() => onNavigate('/staff')} />
+        <QuickAction label="Schedule" icon={CalendarDays} color="bg-emerald-600" onClick={() => onNavigate('/timetable')} />
       </div>
 
       {/* Timetable Modal */}

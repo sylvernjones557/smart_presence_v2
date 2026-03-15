@@ -14,6 +14,7 @@ import StudentsDirectory from './pages/StudentsDirectory';
 import StaffDirectory from './pages/StaffDirectory';
 import StaffDetail from './pages/StaffDetail';
 import InstitutionalReport from './pages/Reports';
+import TimetableManager from './pages/TimetableManager';
 
 // New Staff Pages
 import StaffHome from './pages/StaffHome';
@@ -315,6 +316,7 @@ const AppContent: React.FC = () => {
       />;
       case '/staff': return <StaffDirectory staffList={staffList} onBack={handleBack} onStaffClick={(id) => setSelectedStaffId(id)} />;
       case '/reports': return <InstitutionalReport onBack={handleBack} />;
+      case '/timetable': return <TimetableManager groupList={groupList} onBack={handleBack} />;
       case '/settings': return (
         <SettingsPage
           onBack={handleBack}
