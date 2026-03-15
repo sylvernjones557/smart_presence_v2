@@ -34,8 +34,9 @@ export const MOCK_ADMIN: any = {
 export const MOCK_CLASSES = [
   { id: 'g1', name: 'Class A', code: 'A' },
   { id: 'g2', name: 'Class B', code: 'B' },
-  { id: 'g3', name: 'Batch 1', code: 'B1' },
-  { id: 'g4', name: 'Batch 2', code: 'B2' },
+  { id: 'g3', name: 'Batch 3', code: 'B3' },
+  { id: 'g4', name: 'Batch 4', code: 'B4' },
+  { id: 'g-test', name: 'Lab Test Class', code: 'TEST' },
 ];
 
 /**

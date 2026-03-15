@@ -144,11 +144,11 @@ export const data = {
         return response.data;
     },
     getTimetable: async (params?: { staff_id?: string; group_id?: string; day_of_week?: number }) => {
-        const response = await api.get('/timetable/', { params });
+        const response = await api.get('/timetable-engine/', { params });
         return response.data;
     },
     addTimetableEntry: async (entry: { group_id: string; staff_id?: string; day_of_week: number; period: number; subject: string; start_time?: string; end_time?: string }) => {
-        const response = await api.post('/timetable/', entry);
+        const response = await api.post('/timetable-engine/', entry);
         return response.data;
     },
     getClassScheduleToday: async (classId: string) => {
@@ -156,17 +156,19 @@ export const data = {
         return response.data;
     },
     checkStaffAvailability: async (day: number, period: number, subject?: string) => {
-        const response = await api.get('/timetable/check-availability', {
-            params: { day_of_week: day, period, subject }
+        const response = await api.post('/timetable-engine/intelligent-availability', {
+            day_of_week: day,
+            period,
+            subject
         });
         return response.data;
     },
     addTimetable: async (entry: any) => {
-        const response = await api.post('/timetable/', entry);
+        const response = await api.post('/timetable-engine/', entry);
         return response.data;
     },
     deleteTimetable: async (entryId: string) => {
-        const response = await api.delete(`/timetable/${entryId}`);
+        const response = await api.delete(`/timetable-engine/entry/${entryId}`);
         return response.data;
     }
 };

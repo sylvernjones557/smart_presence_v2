@@ -11,6 +11,81 @@ from app.db.session import get_db
 router = APIRouter()
 
 
+@router.post("/intelligent-availability", response_model=Any)
+def check_staff_availability(
+    request_data: dict,  # Expect { "day_of_week": int, "period": int, "subject": str }
+    db: Session = Depends(get_db),
+    current_user: models.Staff = Depends(deps.get_current_active_user),
+) -> Any:
+    """Find available staff for a specific timetable slot."""
+    day_of_week = request_data.get("day_of_week", 1)
+    period = request_data.get("period", 1)
+    subject = request_data.get("subject")
+    
+    """Find available staff for a specific timetable slot."""
+    # 1. Get all staff
+    all_staff = db.query(models.Staff).filter(models.Staff.is_active == True).all()
+    
+    # 2. Get IDs of staff who are ALREADY busy in this slot
+    busy_staff_entries = db.query(models.Timetable).filter(
+        models.Timetable.day_of_week == day_of_week,
+        models.Timetable.period == period,
+        models.Timetable.staff_id.isnot(None)
+    ).all()
+    
+    busy_ids = {entry.staff_id for entry in busy_staff_entries}
+    
+    available = []
+    recommended = []
+    busy = []
+
+    for s in all_staff:
+        staff_data = {
+            "id": s.id,
+            "name": s.name,
+            "specializations": [s.primary_subject, getattr(s, 'secondary_subject', None), getattr(s, 'tertiary_subject', None)],
+            "avatar": s.avatar_url
+        }
+        
+        if s.id in busy_ids:
+            # Find what class they are in
+            entry = next((e for e in busy_staff_entries if e.staff_id == s.id), None)
+            staff_data["busy_with"] = entry.subject if entry else "Other Class"
+            busy.append(staff_data)
+        else:
+            # RANKING LOGIC: 1=Primary(Expert), 2=Secondary(Advanced), 3=Tertiary(Advanced), 0=None(Substitute)
+            priority = 0
+            if subject:
+                query = subject.lower()
+                if s.primary_subject and query in s.primary_subject.lower():
+                    priority = 1
+                elif hasattr(s, 'secondary_subject') and s.secondary_subject and query in s.secondary_subject.lower():
+                    priority = 2
+                elif hasattr(s, 'tertiary_subject') and s.tertiary_subject and query in s.tertiary_subject.lower():
+                    priority = 3
+
+            staff_data["priority"] = priority
+
+            if priority == 1:
+                staff_data["tier"] = "EXPERT"
+                recommended.append(staff_data)
+            elif priority > 1:
+                staff_data["tier"] = "ADVANCED"
+                recommended.append(staff_data)
+            else:
+                staff_data["tier"] = "SUBSTITUTE"
+                available.append(staff_data)
+
+    # Sort recommended to show Experts first
+    recommended.sort(key=lambda x: x["priority"])
+
+    return {
+        "recommended": recommended,
+        "available": available,
+        "busy": busy
+    }
+
+
 @router.get("/", response_model=List[schemas.Timetable])
 def read_timetable(
     db: Session = Depends(get_db),
@@ -87,79 +162,9 @@ def create_timetable_entry(
     return entry
 
 
-@router.get("/check-availability", response_model=Any)
-def check_staff_availability(
-    day_of_week: int,
-    period: int,
-    subject: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: models.Staff = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """Find available staff for a specific timetable slot."""
-    # 1. Get all staff
-    all_staff = db.query(models.Staff).filter(models.Staff.is_active == True).all()
-    
-    # 2. Get IDs of staff who are ALREADY busy in this slot
-    busy_staff_entries = db.query(models.Timetable).filter(
-        models.Timetable.day_of_week == day_of_week,
-        models.Timetable.period == period,
-        models.Timetable.staff_id.isnot(None)
-    ).all()
-    
-    busy_ids = {entry.staff_id for entry in busy_staff_entries}
-    
-    available = []
-    recommended = []
-    busy = []
-
-    for s in all_staff:
-        staff_data = {
-            "id": s.id,
-            "name": s.name,
-            "specializations": [s.primary_subject, getattr(s, 'secondary_subject', None), getattr(s, 'tertiary_subject', None)],
-            "avatar": s.avatar_url
-        }
-        
-        if s.id in busy_ids:
-            # Find what class they are in
-            entry = next((e for e in busy_staff_entries if e.staff_id == s.id), None)
-            staff_data["busy_with"] = entry.subject if entry else "Other Class"
-            busy.append(staff_data)
-        else:
-            # RANKING LOGIC: 1=Primary(Expert), 2=Secondary(Advanced), 3=Tertiary(Advanced), 0=None(Substitute)
-            priority = 0
-            if subject:
-                query = subject.lower()
-                if s.primary_subject and query in s.primary_subject.lower():
-                    priority = 1
-                elif hasattr(s, 'secondary_subject') and s.secondary_subject and query in s.secondary_subject.lower():
-                    priority = 2
-                elif hasattr(s, 'tertiary_subject') and s.tertiary_subject and query in s.tertiary_subject.lower():
-                    priority = 3
-
-            staff_data["priority"] = priority
-
-            if priority == 1:
-                staff_data["tier"] = "EXPERT"
-                recommended.append(staff_data)
-            elif priority > 1:
-                staff_data["tier"] = "ADVANCED"
-                recommended.append(staff_data)
-            else:
-                staff_data["tier"] = "SUBSTITUTE"
-                available.append(staff_data)
-
-    # Sort recommended to show Experts first
-    recommended.sort(key=lambda x: x["priority"])
-
-    return {
-        "recommended": recommended,
-        "available": available,
-        "busy": busy
-    }
 
 
-@router.get("/{entry_id}", response_model=schemas.Timetable)
+@router.get("/entry/{entry_id}", response_model=schemas.Timetable)
 def read_timetable_entry(
     entry_id: UUID,
     db: Session = Depends(get_db),
@@ -171,7 +176,7 @@ def read_timetable_entry(
     return entry
 
 
-@router.patch("/{entry_id}", response_model=schemas.Timetable)
+@router.patch("/entry/{entry_id}", response_model=schemas.Timetable)
 def update_timetable_entry(
     entry_id: UUID,
     entry_update: schemas.TimetableUpdate,
@@ -189,7 +194,7 @@ def update_timetable_entry(
     return entry
 
 
-@router.delete("/{entry_id}")
+@router.delete("/entry/{entry_id}")
 def delete_timetable_entry(
     entry_id: UUID,
     db: Session = Depends(get_db),

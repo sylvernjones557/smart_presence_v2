@@ -60,10 +60,21 @@ const StaffDetail: React.FC<StaffDetailProps> = ({ staff, onBack, onOpenChat, on
                   <span className="px-5 py-2 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 rounded-xl text-[9px] font-bold border border-slate-100 dark:border-slate-800 uppercase tracking-widest">
                      {staff.type.replace('_', ' ')}
                   </span>
-                  <span className="px-5 py-2 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 rounded-xl text-[9px] font-bold border border-slate-100 dark:border-slate-800 uppercase tracking-widest">
-                     ID: {staff.id.toUpperCase()}
-                  </span>
-               </div>
+                   <span className="px-5 py-2 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 rounded-xl text-[9px] font-bold border border-slate-100 dark:border-slate-800 uppercase tracking-widest">
+                     ID: {staff.id.toUpperCase().split('-')[0]}
+                   </span>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                  {staff.primarySubject && (
+                    <div className="flex flex-col items-center">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Subject Expertise</span>
+                      <span className="px-4 py-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">
+                        {staff.primarySubject}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                {staff.email && (
                   <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold">{staff.email}</p>

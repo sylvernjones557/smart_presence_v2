@@ -117,3 +117,19 @@ def delete_staff(
     db.delete(staff)
     db.commit()
     return {"message": "Staff deleted"}
+@router.get("/{staff_id}/activity")
+def read_staff_activity(
+    staff_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.Staff = Depends(deps.get_current_active_user),
+) -> Any:
+    # Return dummy activity for the chart
+    return [
+        {"day": "Mon", "attendance": 85},
+        {"day": "Tue", "attendance": 90},
+        {"day": "Wed", "attendance": 95},
+        {"day": "Thu", "attendance": 80},
+        {"day": "Fri", "attendance": 88},
+        {"day": "Sat", "attendance": 70},
+        {"day": "Sun", "attendance": 60},
+    ]

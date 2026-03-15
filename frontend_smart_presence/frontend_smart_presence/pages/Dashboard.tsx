@@ -279,17 +279,17 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <div className="space-y-8 page-enter">
+    <div className="space-y-6 page-enter">
       <div
-        className="bg-slate-950 dark:bg-indigo-600 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group transition-all"
+        className="bg-slate-950 dark:bg-indigo-600 p-6 sm:p-8 rounded-[2.5rem] sm:rounded-[3rem] text-white shadow-2xl relative overflow-hidden group transition-all"
       >
         <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 blur-3xl rounded-full"></div>
         <div className="relative z-10">
-          <div className="flex items-center gap-2.5 mb-5">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <p className="text-white/70 text-[12px] font-bold uppercase tracking-widest">Main Hub</p>
+          <div className="flex items-center gap-2.5 mb-4 sm:mb-5">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <p className="text-white/70 text-[10px] sm:text-[12px] font-bold uppercase tracking-widest">Main Hub</p>
           </div>
-          <h2 className="text-3xl font-black tracking-tight leading-none uppercase mb-8">Home<br />Summary</h2>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-none uppercase mb-6 sm:mb-8">Home Summary</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/10 px-5 py-4 rounded-2xl border border-white/5 backdrop-blur-md">

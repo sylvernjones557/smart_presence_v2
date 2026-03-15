@@ -28,11 +28,12 @@ interface SettingsProps {
   onBack: () => void;
   onAddStaff: (s: StaffMember) => void;
   onAddStudent: (s: Student) => void;
+  onStaffClick?: (id: string) => void;
   staffList?: StaffMember[];
   groupList?: any[];
 }
 
-const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStudent, staffList = [], groupList = MOCK_CLASSES }) => {
+const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStudent, onStaffClick, staffList = [], groupList = MOCK_CLASSES }) => {
   // Find classes that already have an assigned class teacher
   const assignedClassIds = staffList
     .filter(s => s.type === 'CLASS_TEACHER' && s.assignedClassId)
@@ -634,6 +635,68 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
               }} className="w-full py-5 rounded-2xl bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95 mt-4 flex items-center justify-center gap-3">
                 Next <ChevronRight size={18} strokeWidth={3} />
               </button>
+            </div>
+
+            {/* SIMPLE QUICK REFERENCE (CLEAN DESIGN) */}
+            <div className="mt-16 space-y-8 animate-in slide-in-from-bottom-8 duration-700">
+              <div className="px-2">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Login Directory</h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Simple School Management Accounts</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-slate-900 p-6 rounded-[2rem] flex items-center gap-5 shadow-2xl group">
+                   <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shrink-0">
+                      <Key size={24} />
+                   </div>
+                   <div className="flex-1 min-w-0">
+                      <h4 className="text-white font-black uppercase text-lg leading-none">admin</h4>
+                      <p className="text-indigo-400 text-[10px] font-bold uppercase mt-2 tracking-widest">Pass: admin</p>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-500 bg-slate-800 px-3 py-1.5 rounded-xl uppercase">Master</span>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-[2rem] flex items-center gap-5 shadow-sm group">
+                   <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shrink-0">
+                      <RotateCw size={24} />
+                   </div>
+                   <div className="flex-1 min-w-0">
+                      <h4 className="text-slate-900 dark:text-white font-black uppercase text-lg leading-none">testclass</h4>
+                      <p className="text-emerald-600 text-[10px] font-bold uppercase mt-2 tracking-widest">Pass: testclass</p>
+                   </div>
+                   <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-xl uppercase">Lab</span>
+                </div>
+              </div>
+
+              <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 -mx-4 px-4 scroll-smooth">
+                {[
+                  { user: 'alice', name: 'Mrs. Alice', sub: 'English' },
+                  { user: 'bob', name: 'Mr. Bob', sub: 'Tamil' },
+                  { user: 'charlie', name: 'Mr. Charlie', sub: 'Maths' },
+                  { user: 'david', name: 'Mrs. David', sub: 'Physics' },
+                  { user: 'eve', name: 'Miss. Eve', sub: 'Chemistry' },
+                  { user: 'frank', name: 'Mr. Frank', sub: 'Biology' },
+                ].map(f => (
+                  <button 
+                    key={f.user} 
+                    onClick={() => {
+                      const realStaff = staffList.find(s => s.username === f.user);
+                      if (realStaff && onStaffClick) onStaffClick(realStaff.id);
+                    }}
+                    className="flex-shrink-0 w-[160px] sm:w-[180px] bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-all text-left group active:scale-95"
+                  >
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-indigo-600 font-black text-[10px] mb-3 sm:mb-4">
+                      {f.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <h5 className="font-black text-slate-900 dark:text-white uppercase text-[12px] sm:text-sm truncate">{f.name}</h5>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-widest">{f.sub}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-[8px] sm:text-[9px] font-black text-indigo-500 uppercase">{f.user}</span>
+                      <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

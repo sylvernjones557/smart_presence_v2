@@ -157,32 +157,32 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
           return (
             <div key={period} className="relative">
               {entry ? (
-                <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 sm:gap-6 relative overflow-hidden group-hover:border-indigo-500 transition-all">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 font-black text-lg border border-indigo-100 dark:border-indigo-800/50 shrink-0">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-[1.8rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3 sm:gap-6 group hover:border-indigo-500 transition-all">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 font-black text-base sm:text-lg border border-indigo-100 dark:border-indigo-800/50 shrink-0">
                     {period}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase leading-tight truncate">{entry.subject}</h4>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1 flex items-center gap-1.5 truncate">
+                    <h4 className="text-sm sm:text-lg font-black text-slate-900 dark:text-white uppercase leading-tight truncate">{entry.subject}</h4>
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1 flex items-center gap-1.5 truncate">
                        <User size={10} className="text-indigo-600" /> {entry.staff_name || 'Staff Linked'}
                     </p>
                   </div>
                   <button 
                     onClick={() => handleDelete(entry.id)}
-                    className="w-9 h-9 sm:w-10 sm:h-10 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all tap-active shrink-0"
+                    className="w-8 h-8 sm:w-10 sm:h-10 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all tap-active shrink-0"
                   >
-                    <X size={16} />
+                    <X size={14} />
                   </button>
                 </div>
               ) : (
                 <button 
                   onClick={() => handleOpenAdd(period)}
-                  className="w-full bg-slate-50/30 dark:bg-slate-900/10 border-2 border-dashed border-slate-200 dark:border-slate-800 py-6 sm:py-8 rounded-[2rem] flex flex-col items-center justify-center gap-2 text-slate-300 dark:text-slate-700 hover:border-indigo-500 hover:text-indigo-500 transition-all tap-active group"
+                  className="w-full bg-slate-50/10 dark:bg-slate-900/10 border border-dashed border-slate-300 dark:border-slate-800 py-4 sm:py-8 rounded-[1.8rem] flex flex-row sm:flex-col items-center justify-center gap-3 text-slate-400 dark:text-slate-600 hover:border-indigo-500 hover:text-indigo-500 transition-all tap-active group"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <Plus size={20} />
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <Plus size={16} />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Open Slot {period}</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em]">Open Slot {period}</span>
                 </button>
               )}
             </div>
@@ -207,53 +207,48 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
               </div>
 
               <div className="space-y-4">
-                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject Title</p>
-                 <div className="relative">
-                    <BookOpen size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-600" />
-                    <input 
-                      type="text" 
-                      placeholder="e.g. ADVANCED CALCULUS" 
-                      value={subjectInput}
-                      onChange={(e) => setSubjectInput(e.target.value.toUpperCase())}
-                      className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 py-6 pl-16 pr-6 rounded-3xl font-black text-sm uppercase tracking-tight focus:border-indigo-500 focus:outline-none transition-all"
-                    />
-                 </div>
-              </div>
+                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject Title</p>                  <div className="relative">
+                     <BookOpen size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-600" />
+                     <input 
+                       type="text" 
+                       placeholder="e.g. ENGLISH, TAMIL, MATHS" 
+                       value={subjectInput}
+                       onChange={(e) => setSubjectInput(e.target.value.toUpperCase())}
+                       className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 py-6 pl-16 pr-6 rounded-3xl font-black text-sm uppercase tracking-tight focus:border-indigo-500 focus:outline-none transition-all"
+                     />
+                  </div>
+               </div>
 
-              {/* Stress-Free Logic Display */}
-              <div className="space-y-6">
-                 <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Teacher Recommendations</p>
-                    {isCheckingAvailability && <Sparkles size={16} className="text-indigo-500 animate-pulse" />}
-                 </div>
+               {/* Stress-Free Logic Display */}
+               <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Staff Recommendations</p>
+                     {isCheckingAvailability && <Sparkles size={16} className="text-indigo-500 animate-pulse" />}
+                  </div>
 
-                 <div className="space-y-4">
-                    {/* Recommended Specialists (EXPERT & ADVANCED) */}
-                    {availability.recommended.map(staff => (
-                       <button 
-                         key={staff.id} 
-                         onClick={() => handleAssign(staff.id)}
-                         className={`w-full p-6 rounded-[2rem] flex items-center gap-4 text-left shadow-lg transition-all hover:scale-[1.02] tap-active border ${
-                           staff.tier === 'EXPERT' 
-                           ? 'bg-indigo-600 text-white shadow-indigo-600/20 border-indigo-500' 
-                           : 'bg-emerald-600 text-white shadow-emerald-600/20 border-emerald-500'
-                         }`}
-                       >
-                          <img src={staff.avatar} className="w-12 h-12 rounded-xl object-cover border-2 border-white/20" alt=""/>
-                          <div className="flex-1">
-                             <div className="flex items-center gap-2 mb-0.5">
-                               <span className="text-[9px] font-black uppercase tracking-widest bg-white/20 px-1.5 py-0.5 rounded">{staff.tier}</span>
-                               <p className="text-[9px] font-bold uppercase text-white/70 tracking-tighter truncate">
-                                 {staff.specializations.filter(Boolean).join(' • ')}
-                               </p>
-                             </div>
-                             <h5 className="font-black text-base uppercase leading-none">{staff.name}</h5>
-                          </div>
-                          <CheckCircle2 size={24} className="text-white/20" />
-                       </button>
-                    ))}
+                  <div className="space-y-4">
+                     {/* Specialist Staff */}
+                     {availability.recommended.map(staff => (
+                        <button 
+                          key={staff.id} 
+                          onClick={() => handleAssign(staff.id)}
+                          className="w-full p-6 rounded-[2rem] flex items-center gap-4 text-left shadow-lg transition-all hover:scale-[1.02] tap-active border bg-indigo-600 text-white shadow-indigo-600/20 border-indigo-500"
+                        >
+                           <img src={staff.avatar} className="w-12 h-12 rounded-xl object-cover border-2 border-white/20" alt=""/>
+                           <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-[9px] font-black uppercase tracking-widest bg-white/20 px-1.5 py-0.5 rounded">PREFERRED</span>
+                                <p className="text-[9px] font-bold uppercase text-white/70 tracking-tighter truncate">
+                                  Expert in {staff.specializations[0]}
+                                </p>
+                              </div>
+                              <h5 className="font-black text-base uppercase leading-none">{staff.name}</h5>
+                           </div>
+                           <CheckCircle2 size={24} className="text-white/20" />
+                        </button>
+                     ))}
 
-                    {/* General Available Staff (SUBSTITUTE) */}
+                    {/* General Available Staff */}
                     {availability.available.map(staff => (
                        <button 
                          key={staff.id} 

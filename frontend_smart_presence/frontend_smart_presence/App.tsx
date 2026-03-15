@@ -121,7 +121,6 @@ const AppContent: React.FC = () => {
 
       // Transform Staff
       const transformedStaff: StaffMember[] = staffData
-        .filter((u: any) => u.role !== 'ADMIN') // Exclude admin from staff list
         .map((u: any) => ({
           id: u.id,
           name: u.full_name || u.name || 'Unknown',
@@ -340,6 +339,7 @@ const AppContent: React.FC = () => {
               toast.showToast('error', 'Failed to Add Student', e.response?.data?.detail || e.message);
             }
           }}
+          onStaffClick={(id) => setSelectedStaffId(id)}
           staffList={staffList}
           groupList={groupList.length ? groupList : MOCK_CLASSES}
         />
