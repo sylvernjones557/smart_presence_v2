@@ -116,7 +116,7 @@ def check_staff_availability(
         staff_data = {
             "id": s.id,
             "name": s.name,
-            "primary_subject": s.primary_subject,
+            "specializations": [s.primary_subject, getattr(s, 'secondary_subject', None), getattr(s, 'tertiary_subject', None)],
             "avatar": s.avatar_url
         }
         
@@ -126,11 +126,31 @@ def check_staff_availability(
             staff_data["busy_with"] = entry.subject if entry else "Other Class"
             busy.append(staff_data)
         else:
-            # If they match the desired subject, recommend them
-            if subject and s.primary_subject and subject.lower() in s.primary_subject.lower():
+            # RANKING LOGIC: 1=Primary(Expert), 2=Secondary(Advanced), 3=Tertiary(Advanced), 0=None(Substitute)
+            priority = 0
+            if subject:
+                query = subject.lower()
+                if s.primary_subject and query in s.primary_subject.lower():
+                    priority = 1
+                elif hasattr(s, 'secondary_subject') and s.secondary_subject and query in s.secondary_subject.lower():
+                    priority = 2
+                elif hasattr(s, 'tertiary_subject') and s.tertiary_subject and query in s.tertiary_subject.lower():
+                    priority = 3
+
+            staff_data["priority"] = priority
+
+            if priority == 1:
+                staff_data["tier"] = "EXPERT"
+                recommended.append(staff_data)
+            elif priority > 1:
+                staff_data["tier"] = "ADVANCED"
                 recommended.append(staff_data)
             else:
+                staff_data["tier"] = "SUBSTITUTE"
                 available.append(staff_data)
+
+    # Sort recommended to show Experts first
+    recommended.sort(key=lambda x: x["priority"])
 
     return {
         "recommended": recommended,

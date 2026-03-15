@@ -167,7 +167,7 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
 
   const [staffForm, setStaffForm] = useState({
     name: '', email: '', username: '', password: '', type: 'CLASS_TEACHER' as StaffType,
-    subject: '', classId: groupList[0]?.id || MOCK_CLASSES[0].id
+    subject: '', secondarySubject: '', tertiarySubject: '', classId: groupList[0]?.id || MOCK_CLASSES[0].id
   });
 
   const [studentForm, setStudentForm] = useState({
@@ -407,6 +407,7 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
   const finalizeStaff = async () => {
     setIsSavingStaff(true);
     try {
+      // 1. Create the Staff member first
       const newStaff = {
         staff_code: staffForm.username,
         password: staffForm.password,
@@ -415,6 +416,8 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
         role: 'STAFF',
         type: staffForm.type,
         primary_subject: staffForm.subject,
+        secondary_subject: staffForm.secondarySubject || null,
+        tertiary_subject: staffForm.tertiarySubject || null,
         assigned_class_id: staffForm.classId || null,
         avatar_url: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(staffForm.name || 'S')}&background=6366F1&color=fff&size=150&bold=true`
       };
@@ -557,13 +560,31 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
                       </div>
                     </div>
 
-                    {/* PRIMARY SUBJECT - only for SUBJECT_TEACHER */}
+                    {/* SPECIALIZATIONS - only for SUBJECT_TEACHER */}
                     {staffForm.type === 'SUBJECT_TEACHER' && (
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Primary Subject</label>
-                        <div className="relative">
-                          <BookOpen className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" size={18} />
-                          <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white font-bold text-sm focus:border-indigo-600 outline-none shadow-inner transition-all" placeholder="e.g. Mathematics" value={staffForm.subject} onChange={e => setStaffForm({ ...staffForm, subject: e.target.value })} />
+                      <div className="space-y-4 md:col-span-2">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Primary Subject</label>
+                            <div className="relative">
+                              <BookOpen className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" size={18} />
+                              <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white font-bold text-sm focus:border-indigo-600 outline-none shadow-inner transition-all" placeholder="e.g. Mathematics" value={staffForm.subject} onChange={e => setStaffForm({ ...staffForm, subject: e.target.value })} />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Secondary (Optional)</label>
+                            <div className="relative">
+                              <BookOpen className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" size={18} />
+                              <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white font-bold text-sm focus:border-indigo-600 outline-none shadow-inner transition-all" placeholder="e.g. Physics" value={staffForm.secondarySubject} onChange={e => setStaffForm({ ...staffForm, secondarySubject: e.target.value })} />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Tertiary (Optional)</label>
+                            <div className="relative">
+                              <BookOpen className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" size={18} />
+                              <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white font-bold text-sm focus:border-indigo-600 outline-none shadow-inner transition-all" placeholder="e.g. Statistics" value={staffForm.tertiarySubject} onChange={e => setStaffForm({ ...staffForm, tertiarySubject: e.target.value })} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

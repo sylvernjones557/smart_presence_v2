@@ -222,23 +222,32 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
                  </div>
 
                  <div className="space-y-4">
-                    {/* Recommended Specialists */}
+                    {/* Recommended Specialists (EXPERT & ADVANCED) */}
                     {availability.recommended.map(staff => (
                        <button 
                          key={staff.id} 
                          onClick={() => handleAssign(staff.id)}
-                         className="w-full p-6 bg-indigo-600 text-white rounded-[2rem] flex items-center gap-4 text-left shadow-lg shadow-indigo-600/20 border border-indigo-500 transition-all hover:scale-[1.02] tap-active"
+                         className={`w-full p-6 rounded-[2rem] flex items-center gap-4 text-left shadow-lg transition-all hover:scale-[1.02] tap-active border ${
+                           staff.tier === 'EXPERT' 
+                           ? 'bg-indigo-600 text-white shadow-indigo-600/20 border-indigo-500' 
+                           : 'bg-emerald-600 text-white shadow-emerald-600/20 border-emerald-500'
+                         }`}
                        >
                           <img src={staff.avatar} className="w-12 h-12 rounded-xl object-cover border-2 border-white/20" alt=""/>
                           <div className="flex-1">
-                             <p className="text-[10px] font-black uppercase text-indigo-100 tracking-widest mb-0.5 whitespace-nowrap overflow-hidden">Primary: {staff.primary_subject}</p>
+                             <div className="flex items-center gap-2 mb-0.5">
+                               <span className="text-[9px] font-black uppercase tracking-widest bg-white/20 px-1.5 py-0.5 rounded">{staff.tier}</span>
+                               <p className="text-[9px] font-bold uppercase text-white/70 tracking-tighter truncate">
+                                 {staff.specializations.filter(Boolean).join(' • ')}
+                               </p>
+                             </div>
                              <h5 className="font-black text-base uppercase leading-none">{staff.name}</h5>
                           </div>
                           <CheckCircle2 size={24} className="text-white/20" />
                        </button>
                     ))}
 
-                    {/* General Available Staff */}
+                    {/* General Available Staff (SUBSTITUTE) */}
                     {availability.available.map(staff => (
                        <button 
                          key={staff.id} 
@@ -247,7 +256,12 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
                        >
                           <img src={staff.avatar} className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800" alt=""/>
                           <div className="flex-1">
-                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-0.5 line-clamp-1">{staff.primary_subject || 'GENERALIST'}</p>
+                             <div className="flex items-center gap-2 mb-0.5">
+                               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">SUBSTITUTE</span>
+                               <p className="text-[9px] font-bold uppercase text-slate-500 tracking-tighter truncate">
+                                 {staff.specializations.filter(Boolean).join(' • ') || 'Generalist'}
+                               </p>
+                             </div>
                              <h5 className="font-black text-base uppercase leading-none text-slate-900 dark:text-white">{staff.name}</h5>
                           </div>
                           <ChevronRight size={18} className="text-slate-300" />

@@ -15,6 +15,8 @@ class Staff(Base):
     role = Column(String, default="STAFF")  # ADMIN, STAFF
     type = Column(String, default="SUBJECT_TEACHER")  # CLASS_TEACHER, SUBJECT_TEACHER
     primary_subject = Column(String, nullable=True)
+    secondary_subject = Column(String, nullable=True)
+    tertiary_subject = Column(String, nullable=True)
     assigned_class_id = Column(StringUUID, ForeignKey("groups.id", ondelete="SET NULL"), nullable=True)
     avatar_url = Column(String, nullable=True)
     full_name = Column(String, nullable=True)

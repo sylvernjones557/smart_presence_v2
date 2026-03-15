@@ -11,6 +11,8 @@ class StaffBase(BaseModel):
     role: Optional[str] = "STAFF"
     type: Optional[str] = "SUBJECT_TEACHER"  # CLASS_TEACHER | SUBJECT_TEACHER
     primary_subject: Optional[str] = None
+    secondary_subject: Optional[str] = None
+    tertiary_subject: Optional[str] = None
     assigned_class_id: Optional[UUID] = None
     avatar_url: Optional[str] = None
     full_name: Optional[str] = None
@@ -29,6 +31,8 @@ class StaffUpdate(BaseModel):
     role: Optional[str] = None
     type: Optional[str] = None
     primary_subject: Optional[str] = None
+    secondary_subject: Optional[str] = None
+    tertiary_subject: Optional[str] = None
     assigned_class_id: Optional[UUID] = None
     avatar_url: Optional[str] = None
     full_name: Optional[str] = None
