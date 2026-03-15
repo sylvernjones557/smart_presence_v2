@@ -203,10 +203,34 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
     });
   }, []);
 
-  const updateTimetable = (dayIndex: number, periodIndex: number, field: string, value: string) => {
+  const updateTimetable = async (dayIndex: number, periodIndex: number, field: string, value: string) => {
     const newTimetable = [...timetable];
     newTimetable[dayIndex].periods[periodIndex] = { ...newTimetable[dayIndex].periods[periodIndex], [field]: value };
     setTimetable(newTimetable);
+
+    // If we just selected a class, check for Deadlocks (Conflicts)
+    if (field === 'classId' && value) {
+      const dayMap: Record<string, number> = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 };
+      const dayOfWeek = dayMap[newTimetable[dayIndex].day];
+      const period = newTimetable[dayIndex].periods[periodIndex].period;
+
+      try {
+        const { data: apiData } = await import('../services/api');
+        // Check if this class is already busy
+        const res = await apiData.getTimetable({ group_id: value, day_of_week: dayOfWeek });
+        const existing = res.find((e: any) => e.period === period);
+        
+        if (existing) {
+          showToast('error', '⚡ DEADLOCK DETECTED', `${formatClassLabel(groupList.find(g => g.id === value))} already has ${existing.subject} with ${existing.staff_name || 'another teacher'} during Period ${period}.`, 6000);
+          // Auto-clear the conflicting selection
+          const cleared = [...newTimetable];
+          cleared[dayIndex].periods[periodIndex].classId = '';
+          setTimetable(cleared);
+        }
+      } catch (e) {
+        console.error('Conflict check failed', e);
+      }
+    }
   };
 
   const startScanSequence = () => {
@@ -383,7 +407,6 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
   const finalizeStaff = async () => {
     setIsSavingStaff(true);
     try {
-      // Construct payload for API (UserCreate schema)
       const newStaff = {
         staff_code: staffForm.username,
         password: staffForm.password,
@@ -392,26 +415,30 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
         role: 'STAFF',
         type: staffForm.type,
         primary_subject: staffForm.subject,
-        assigned_class_id: staffForm.classId,
+        assigned_class_id: staffForm.classId || null,
         avatar_url: avatarPreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(staffForm.name || 'S')}&background=6366F1&color=fff&size=150&bold=true`
       };
-      await onAddStaff(newStaff as any);
+      
+      const savedStaff = await onAddStaff(newStaff as any);
+      const staffId = savedStaff.id;
 
-      // Submit timetable entries to backend
       const dayMap: Record<string, number> = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 };
+      
       try {
-        const { data: timetableApi } = await import('../services/api');
+        const { data: apiData } = await import('../services/api');
         for (const day of timetable) {
           const dayOfWeek = dayMap[day.day];
           if (!dayOfWeek) continue;
           for (const period of day.periods) {
             if (period.subject && period.classId) {
-              await timetableApi.addTimetableEntry({
+              await apiData.addTimetable({
                 group_id: period.classId,
-                staff_id: undefined, // Will be filled server-side if needed
+                staff_id: staffId,
                 day_of_week: dayOfWeek,
                 period: period.period,
                 subject: period.subject,
+                start_time: "09:00",
+                end_time: "09:45"
               });
             }
           }
@@ -420,10 +447,10 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
         console.error('Failed to save timetable entries', e);
       }
 
-      showToast('success', 'Teacher Added', `${staffForm.name} has been registered with schedule`);
+      showToast('success', 'Teacher Ready', `${staffForm.name} is now fully operational.`);
       setStep(4);
     } catch (e: any) {
-      showToast('error', 'Failed', e?.response?.data?.detail || 'Could not save teacher.');
+      console.error(e);
     } finally {
       setIsSavingStaff(false);
     }
@@ -684,36 +711,40 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
             </header>
 
             {/* Scrollable timetable body */}
-            <div className="flex-1 overflow-y-auto no-scrollbar">
-              <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+            <div className="flex-1 overflow-y-auto no-scrollbar bg-[#0f172a]">
+              <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
                 {timetable.map((day, dIdx) => (
-                  <div key={day.day} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="flex items-center gap-2.5 text-indigo-600 dark:text-indigo-400 bg-slate-50 dark:bg-slate-800/50 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
-                      <Calendar size={16} />
-                      <h4 className="text-xs font-black uppercase tracking-widest">{day.day}</h4>
+                  <div key={day.day} className="bg-[#1e293b]/50 backdrop-blur-md border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl p-6 space-y-6">
+                    <div className="flex items-center gap-3 text-indigo-400 mb-2">
+                      <Calendar size={20} className="text-indigo-500" />
+                      <h4 className="text-sm font-black uppercase tracking-[0.3em]">{day.day}</h4>
                     </div>
 
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <div className="space-y-8">
                       {day.periods.map((p, pIdx) => (
-                        <div key={p.period} className="px-5 py-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Clock size={12} className="text-slate-400" />
-                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Period {p.period}</span>
+                        <div key={p.period} className="space-y-4 relative">
+                          <div className="flex items-center gap-2 opacity-60">
+                            <Clock size={14} className="text-indigo-400" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Period {p.period}</span>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="relative">
-                              <BookOpen size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" />
+                          
+                          <div className="space-y-3">
+                            {/* Subject Input */}
+                            <div className="relative group">
+                              <BookOpen size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
                               <input
                                 placeholder="Subject Name"
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl pl-10 pr-3 py-3 text-xs font-bold text-slate-900 dark:text-white focus:border-indigo-600 outline-none transition-all"
+                                className="w-full bg-[#0f172a] border border-white/5 rounded-2xl pl-14 pr-4 py-5 font-bold text-slate-200 focus:border-indigo-500/50 outline-none transition-all shadow-inner"
                                 value={p.subject}
-                                onChange={e => updateTimetable(dIdx, pIdx, 'subject', e.target.value)}
+                                onChange={e => updateTimetable(dIdx, pIdx, 'subject', e.target.value.toUpperCase())}
                               />
                             </div>
-                            <div className="relative">
-                              <Layers size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" />
+
+                            {/* Class Selector */}
+                            <div className="relative group">
+                              <Layers size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
                               <select
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl pl-10 pr-3 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 outline-none appearance-none transition-all"
+                                className="w-full bg-[#0f172a] border border-white/5 rounded-2xl pl-14 pr-4 py-5 font-bold text-slate-400 focus:text-slate-200 focus:border-indigo-500/50 outline-none appearance-none transition-all shadow-inner cursor-pointer"
                                 value={p.classId}
                                 onChange={e => updateTimetable(dIdx, pIdx, 'classId', e.target.value)}
                               >
@@ -731,17 +762,17 @@ const SettingsPage: React.FC<SettingsProps> = ({ onBack, onAddStaff, onAddStuden
             </div>
 
             {/* Sticky bottom save */}
-            <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+            <div className="flex-shrink-0 bg-[#0f172a] border-t border-white/5 p-6 pb-[max(24px,env(safe-area-inset-bottom))]">
               <div className="max-w-2xl mx-auto">
                 <button
                   onClick={finalizeStaff}
                   disabled={isSavingStaff}
-                  className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2.5"
+                  className="w-full py-6 rounded-[2rem] bg-indigo-600 text-white font-black text-[13px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 border border-indigo-500"
                 >
                   {isSavingStaff ? (
-                    <><Loader2 size={18} className="animate-spin" /> Saving…</>
+                    <><Loader2 size={20} className="animate-spin" /> Finalizing Setup…</>
                   ) : (
-                    <><CheckCircle2 size={18} /> Save Schedule & Add Teacher</>
+                    <><CheckCircle2 size={20} strokeWidth={2.5} /> Save Schedule & Add Teacher</>
                   )}
                 </button>
               </div>

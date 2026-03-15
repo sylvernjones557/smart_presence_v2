@@ -322,11 +322,13 @@ const AppContent: React.FC = () => {
           onBack={handleBack}
           onAddStaff={async (s: any) => {
             try {
-              await data.addStaff(s);
+              const res = await data.addStaff(s);
               toast.showToast('success', 'Staff Added', `New staff member has been registered successfully.`);
               loadGlobalData();
+              return res; // Return the created staff object
             } catch (e: any) {
               toast.showToast('error', 'Failed to Add Staff', e.response?.data?.detail || e.message);
+              throw e;
             }
           }}
           onAddStudent={async (s: any) => {
