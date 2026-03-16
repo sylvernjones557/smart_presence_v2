@@ -1,6 +1,6 @@
-# 🌐 Cloudflare Tunnel & Proxy Guide
+# 🌐 Cloudflare Tunnel & Proxy Guide - Smart Presence V4 Premium
 
-Because **Smart Presence** relies heavily on real-time hardware access (your Webcam and Microphone), modern mobile browsers (Chrome/Safari) **strictly require** a secure HTTPS connection (SSL Certificate) to grant the frontend access to facial scanning on a mobile phone.
+Because **Smart Presence V4 Premium** relies heavily on real-time hardware access (your Webcam and Microphone), modern mobile browsers (Chrome/Safari) **strictly require** a secure HTTPS connection (SSL Certificate) to grant the frontend access to facial scanning on a mobile phone.
 
 When running on a local home or college network (e.g., `192.168.1.7`), browsers throw "Untrusted Certificate" errors.
 

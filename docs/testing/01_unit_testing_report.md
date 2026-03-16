@@ -1,6 +1,6 @@
-# Unit Testing Report
+# Smart Presence V4 Premium Unit Testing Report
 
-**Project:** Smart Presence System  
+**Project:** Smart Presence V4 Premium System  
 **Date:** 2026-03-08  
 **Framework:** pytest 7.4.3 + FastAPI TestClient  
 **Database:** In-memory SQLite (isolated per test)  

@@ -1,6 +1,6 @@
-# Smart Presence MCP Server
+# Smart Presence V4 Premium MCP Server
 
-JSON-RPC 2.0 compliant **Model Context Protocol** server that exposes the entire Smart Presence application for AI-driven automation.
+JSON-RPC 2.0 compliant **Model Context Protocol** server that exposes the entire Smart Presence V4 Premium application for AI-driven automation.
 
 ## Architecture
 

@@ -1,6 +1,6 @@
-# Acceptance Testing Report (End-to-End)
+# Smart Presence V4 Premium Acceptance Testing Report (End-to-End)
 
-**Project:** Smart Presence System  
+**Project:** Smart Presence V4 Premium System  
 **Date:** 2026-03-08  
 **Test Runner:** test_e2e.py + test_mcp.py (live server tests)  
 **Backend:** http://127.0.0.1:8000 (running)  

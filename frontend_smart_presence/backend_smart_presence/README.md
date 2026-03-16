@@ -1,6 +1,6 @@
-# Smart Presence Backend
+# Smart Presence V4 Premium Backend
 
-Backend for the Smart Presence attendance system, built with **FastAPI**, **SQLAlchemy**, **SQLite**, **ChromaDB**, and **InsightFace**.
+Backend for the Smart Presence V4 Premium attendance system, built with **FastAPI**, **SQLAlchemy**, **SQLite**, **ChromaDB**, and **InsightFace**.
 
 ## Key Features
 

@@ -1,7 +1,7 @@
 # Security Policy
 
 ## Supported Versions
-Currently, this project is in pre-V1 development and does not have officially supported versions for security updates.
+Currently, this project is in **Smart Presence V4 Premium** development and does not have officially supported legacy versions for security updates.
 
 ## Reporting a Vulnerability
 If you discover a security vulnerability within this project, please do not disclose it publicly. 
