@@ -55,6 +55,14 @@ def get_live_classes(
     return live
 
 
+# ── Global Period Timings (Institution-wide defaults) ──
+GLOBAL_PERIOD_TIMINGS = {
+    1: {"start": "09:00:00", "end": "10:00:00"},
+    2: {"start": "10:00:00", "end": "11:00:00"},
+    3: {"start": "11:00:00", "end": "12:00:00"},
+}
+
+
 @router.get("/{class_id}/schedule/today")
 def get_class_schedule_today(
     class_id: UUID,
@@ -62,6 +70,9 @@ def get_class_schedule_today(
     current_user: models.Staff = Depends(deps.get_current_active_user),
 ) -> Any:
     """Get today's schedule for a specific class."""
+    from datetime import time as dt_time, timedelta
+    from app.models.attendance import AttendanceSession
+
     # Verify group exists
     group = db.query(models.Group).filter(models.Group.id == class_id).first()
     if not group:
@@ -74,18 +85,51 @@ def get_class_schedule_today(
         models.Timetable.day_of_week == day_of_week,
     ).order_by(models.Timetable.period).all()
 
+    # Check today's attendance sessions for this class to detect late entries
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.group_id == class_id,
+        AttendanceSession.started_at >= today_start,
+        AttendanceSession.status == "COMPLETED",
+    ).all()
+
     result = []
     for entry in entries:
         staff = db.query(models.Staff).filter(models.Staff.id == entry.staff_id).first() if entry.staff_id else None
+        
+        # Use global timing as fallback if entry doesn't have specific times
+        global_timing = GLOBAL_PERIOD_TIMINGS.get(entry.period, {})
+        effective_start = entry.start_time
+        effective_end = entry.end_time
+        
+        if not effective_start and global_timing.get("start"):
+            parts = global_timing["start"].split(":")
+            effective_start = dt_time(int(parts[0]), int(parts[1]))
+        if not effective_end and global_timing.get("end"):
+            parts = global_timing["end"].split(":")
+            effective_end = dt_time(int(parts[0]), int(parts[1]))
+        
+        time_str = f"{effective_start.strftime('%H:%M') if effective_start else '?'} - {effective_end.strftime('%H:%M') if effective_end else '?'}"
+        
+        # Check if attendance was taken late for this period
+        attendance_taken_late = False
+        if effective_end and today_sessions:
+            for s in today_sessions:
+                if s.ended_at and s.ended_at.time() > effective_end:
+                    attendance_taken_late = True
+                    break
+        
         result.append({
             "id": str(entry.id),
             "period": entry.period,
             "subject": entry.subject,
             "teacher_name": staff.name if staff else "TBD",
             "staff_id": str(entry.staff_id) if entry.staff_id else None,
-            "time": f"{entry.start_time.strftime('%H:%M') if entry.start_time else '?'} - {entry.end_time.strftime('%H:%M') if entry.end_time else '?'}",
-            "start_time": entry.start_time.isoformat() if entry.start_time else None,
-            "end_time": entry.end_time.isoformat() if entry.end_time else None,
+            "time": time_str,
+            "start_time": effective_start.isoformat() if effective_start else None,
+            "end_time": effective_end.isoformat() if effective_end else None,
+            "attendance_taken_late": attendance_taken_late,
         })
 
     return result
+

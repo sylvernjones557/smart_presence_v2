@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, MessageSquare, ShieldCheck, UserX } from 'lucide-react';
+import { ArrowUpRight, MessageSquare, ShieldCheck, UserX, Radio, BookOpen, Clock } from 'lucide-react';
 import { StaffMember } from '../types';
-import { BackButton } from '../constants';
+import { BackButton, PERIOD_TIMINGS, getPeriodTime, getCurrentPeriod } from '../constants';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { data } from '../services/api';
 
@@ -16,6 +16,8 @@ interface StaffDetailProps {
 
 const StaffDetail: React.FC<StaffDetailProps> = ({ staff, onBack, onOpenChat, onTerminateStaff, isAdmin }) => {
    const [activityData, setActivityData] = useState<{ day: string, attendance: number }[]>([]);
+   const [liveClass, setLiveClass] = useState<{ subject: string; group_name: string; period: number; time: string } | null>(null);
+   const [liveClassLoading, setLiveClassLoading] = useState(true);
 
    useEffect(() => {
       const fetchActivity = async () => {
@@ -27,6 +29,63 @@ const StaffDetail: React.FC<StaffDetailProps> = ({ staff, onBack, onOpenChat, on
          }
       };
       fetchActivity();
+   }, [staff.id]);
+
+   // Fetch live class for this staff member
+   useEffect(() => {
+      const fetchLiveClass = async () => {
+         setLiveClassLoading(true);
+         try {
+            const currentPeriod = getCurrentPeriod();
+            if (!currentPeriod) {
+               setLiveClass(null);
+               setLiveClassLoading(false);
+               return;
+            }
+
+            // Get today's day of week (1=Monday, ..., 5=Friday)
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ...
+            const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Convert to ISO: 1=Mon, 7=Sun
+
+            if (isoDayOfWeek > 5) {
+               // Weekend
+               setLiveClass(null);
+               setLiveClassLoading(false);
+               return;
+            }
+
+            // Fetch timetable for this staff member on today
+            const entries = await data.getTimetable({ staff_id: staff.id, day_of_week: isoDayOfWeek });
+            const currentEntry = (entries || []).find((e: any) => e.period === currentPeriod.period);
+
+            if (currentEntry) {
+               // Resolve group name
+               let groupName = currentEntry.group_name || '';
+               if (!groupName && currentEntry.group_id) {
+                  try {
+                     const groups = await data.getGroups();
+                     const group = groups.find((g: any) => g.id === currentEntry.group_id);
+                     groupName = group?.name || 'Unknown Class';
+                  } catch { groupName = 'Unknown Class'; }
+               }
+               setLiveClass({
+                  subject: currentEntry.subject || 'Class',
+                  group_name: groupName,
+                  period: currentEntry.period,
+                  time: getPeriodTime(currentEntry.period),
+               });
+            } else {
+               setLiveClass(null);
+            }
+         } catch (e) {
+            console.error("Failed to check live class", e);
+            setLiveClass(null);
+         } finally {
+            setLiveClassLoading(false);
+         }
+      };
+      fetchLiveClass();
    }, [staff.id]);
 
    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -100,6 +159,63 @@ const StaffDetail: React.FC<StaffDetailProps> = ({ staff, onBack, onOpenChat, on
                   )}
                </div>
             </div>
+         </div>
+
+         {/* ── Live Class Status Card ── */}
+         <div className={`rounded-[2.5rem] p-6 md:p-8 border shadow-sm relative overflow-hidden ${
+            liveClass
+               ? 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/40 dark:to-slate-900 border-indigo-200 dark:border-indigo-800/40'
+               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+         }`}>
+            {liveClass && (
+               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[60px] rounded-full"></div>
+            )}
+            <div className="flex items-center gap-4 mb-4">
+               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  liveClass
+                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                     : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+               }`}>
+                  {liveClass ? <Radio size={18} className="animate-pulse" /> : <Clock size={18} />}
+               </div>
+               <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Current Status</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">
+                     {liveClassLoading ? 'Checking...' : liveClass ? 'In Class Now' : 'Staff Has No Class Now'}
+                  </h3>
+               </div>
+            </div>
+
+            {liveClass ? (
+               <div className="flex items-center gap-4 p-4 bg-white/70 dark:bg-slate-950/50 rounded-2xl border border-indigo-100 dark:border-indigo-800/30">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-lg">
+                     {liveClass.period}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                     <h4 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight truncate">{liveClass.subject}</h4>
+                     <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mt-1 flex items-center gap-2">
+                        <BookOpen size={12} /> {liveClass.group_name} · {liveClass.time}
+                     </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                     <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Live</span>
+                  </div>
+               </div>
+            ) : !liveClassLoading && (
+               <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                     <BookOpen size={18} className="text-slate-400 dark:text-slate-600" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
+                     {(() => {
+                        const currentP = getCurrentPeriod();
+                        if (!currentP) return 'Outside class hours (9 AM - 12 PM)';
+                        return `Free during ${currentP.label} (${getPeriodTime(currentP.period)})`;
+                     })()}
+                  </p>
+               </div>
+            )}
          </div>
 
          <div className="space-y-6">

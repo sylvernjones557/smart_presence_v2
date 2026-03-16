@@ -10,6 +10,13 @@ from app.db.session import get_db
 
 router = APIRouter()
 
+# ── Global Period Timings (Institution-wide defaults) ──
+GLOBAL_PERIOD_TIMINGS = {
+    1: {"start": "09:00:00", "end": "10:00:00"},
+    2: {"start": "10:00:00", "end": "11:00:00"},
+    3: {"start": "11:00:00", "end": "12:00:00"},
+}
+
 
 @router.post("/intelligent-availability", response_model=Any)
 def check_staff_availability(
@@ -111,6 +118,8 @@ def create_timetable_entry(
     entry_in: schemas.TimetableCreate,
     current_user: models.Staff = Depends(deps.get_current_active_superuser),
 ) -> Any:
+    from datetime import time as dt_time
+
     # 1. Verify group exists
     group = db.query(models.Group).filter(models.Group.id == entry_in.group_id).first()
     if not group:
@@ -147,14 +156,26 @@ def create_timetable_entry(
                 detail=f"{staff.name} is already assigned to {busy_group.name if busy_group else 'another class'} during this period."
             )
 
+    # Auto-fill global period timings if not provided
+    effective_start = entry_in.start_time
+    effective_end = entry_in.end_time
+    global_timing = GLOBAL_PERIOD_TIMINGS.get(entry_in.period, {})
+    
+    if not effective_start and global_timing.get("start"):
+        parts = global_timing["start"].split(":")
+        effective_start = dt_time(int(parts[0]), int(parts[1]))
+    if not effective_end and global_timing.get("end"):
+        parts = global_timing["end"].split(":")
+        effective_end = dt_time(int(parts[0]), int(parts[1]))
+
     entry = models.Timetable(
         group_id=entry_in.group_id,
         day_of_week=entry_in.day_of_week,
         period=entry_in.period,
         subject=entry_in.subject,
         staff_id=entry_in.staff_id,
-        start_time=entry_in.start_time,
-        end_time=entry_in.end_time,
+        start_time=effective_start,
+        end_time=effective_end,
     )
     db.add(entry)
     db.commit()

@@ -12,6 +12,65 @@ import {
   BookOpen
 } from 'lucide-react';
 
+// ── Global Period Timings (Institution-wide) ──
+export const PERIOD_TIMINGS = [
+  { period: 1, label: 'Period 1', start: '09:00', end: '10:00', startH: 9, startM: 0, endH: 10, endM: 0 },
+  { period: 2, label: 'Period 2', start: '10:00', end: '11:00', startH: 10, startM: 0, endH: 11, endM: 0 },
+  { period: 3, label: 'Period 3', start: '11:00', end: '12:00', startH: 11, startM: 0, endH: 12, endM: 0 },
+];
+
+/** Get the formatted time range for a given period number */
+export const getPeriodTime = (periodNum: number): string => {
+  const p = PERIOD_TIMINGS.find(t => t.period === periodNum);
+  if (!p) return '';
+  const fmt = (h: number) => {
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hh = h > 12 ? h - 12 : h === 0 ? 12 : h;
+    return `${hh}:00 ${ampm}`;
+  };
+  return `${fmt(p.startH)} - ${fmt(p.endH)}`;
+};
+
+/** Get the current active period info based on current time, or null if outside class hours */
+export const getCurrentPeriod = (): { period: number; label: string; start: string; end: string; status: 'ACTIVE' | 'DONE' | 'WAITING' } | null => {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const nowMins = h * 60 + m;
+  
+  for (const p of PERIOD_TIMINGS) {
+    const startMins = p.startH * 60 + p.startM;
+    const endMins = p.endH * 60 + p.endM;
+    if (nowMins >= startMins && nowMins < endMins) {
+      return { period: p.period, label: p.label, start: p.start, end: p.end, status: 'ACTIVE' };
+    }
+  }
+  return null;
+};
+
+/** Check if attendance is being taken late (after the period's scheduled end time) */
+export const isLateAttendance = (periodNum: number): boolean => {
+  const p = PERIOD_TIMINGS.find(t => t.period === periodNum);
+  if (!p) return false;
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const endMins = p.endH * 60 + p.endM;
+  return nowMins > endMins;
+};
+
+/** Get period status based on current time */
+export const getPeriodStatus = (periodNum: number): 'ACTIVE' | 'DONE' | 'WAITING' => {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const p = PERIOD_TIMINGS.find(t => t.period === periodNum);
+  if (!p) return 'WAITING';
+  const startMins = p.startH * 60 + p.startM;
+  const endMins = p.endH * 60 + p.endM;
+  if (nowMins >= endMins) return 'DONE';
+  if (nowMins >= startMins) return 'ACTIVE';
+  return 'WAITING';
+};
+
 export const COLORS = {
   primary: '#4F46E5',
   secondary: '#64748B',

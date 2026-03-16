@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Radio, CheckCircle2, Clock, Calendar, BookOpen, User, ChevronRight, GraduationCap } from 'lucide-react';
+import { ShieldCheck, Radio, CheckCircle2, Clock, Calendar, BookOpen, User, ChevronRight, GraduationCap, AlertTriangle } from 'lucide-react';
 import { StaffMember, Student } from '../types';
-import { BackButton } from '../constants';
+import { BackButton, PERIOD_TIMINGS, getPeriodTime, getPeriodStatus } from '../constants';
 import { data } from '../services/api';
 
 interface ClassDetailProps {
@@ -24,7 +24,19 @@ const ClassDetail: React.FC<ClassDetailProps> = ({ classObj, teacher, students, 
     const fetchSchedule = async () => {
       try {
         const result = await data.getClassSchedule(classObj.id);
-        setPeriods(result);
+        // Enrich with global period timings and computed status
+        const enriched = (result || []).map((entry: any) => {
+          const periodNum = entry.period || 1;
+          const status = getPeriodStatus(periodNum);
+          const globalTime = getPeriodTime(periodNum);
+          return {
+            ...entry,
+            status,
+            // Use global timing if backend didn't provide specific time
+            time: globalTime || entry.time || '',
+          };
+        });
+        setPeriods(enriched);
       } catch (e) {
         console.error("Failed to load class schedule", e);
       }
@@ -64,7 +76,7 @@ const ClassDetail: React.FC<ClassDetailProps> = ({ classObj, teacher, students, 
           </div>
         </div>
 
-        {/* Static Staff Info Card (No Navigation) */}
+        {/* Static Staff Info Card */}
         <div className="flex items-center gap-5 p-6 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[2.25rem] transition-all z-10">
           <div className="relative">
             <img src={teacher?.avatar || `https://ui-avatars.com/api/?name=Unassigned&background=94A3B8&color=fff&size=64&bold=true`} className="w-16 h-16 rounded-2xl object-cover border-2 border-white dark:border-slate-800 shadow-md" alt="" />
@@ -77,6 +89,21 @@ const ClassDetail: React.FC<ClassDetailProps> = ({ classObj, teacher, students, 
             </p>
             <h4 className="text-lg font-bold text-slate-900 dark:text-white truncate leading-none">{teacher?.name || 'Unassigned'}</h4>
             <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-wider">{teacher?.primarySubject || 'No subject'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Global Timetable Info Banner */}
+      <div className="bg-indigo-50 dark:bg-indigo-900/15 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl p-4 flex items-start gap-3">
+        <Clock size={16} className="text-indigo-500 mt-0.5 shrink-0" />
+        <div className="flex-1">
+          <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Class Schedule</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {PERIOD_TIMINGS.map(p => (
+              <span key={p.period} className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                P{p.period}: {getPeriodTime(p.period)}
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -97,29 +124,50 @@ const ClassDetail: React.FC<ClassDetailProps> = ({ classObj, teacher, students, 
               </h3>
             </div>
 
-            <div className="space-y-6 relative">
-              <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-slate-100 dark:bg-slate-800 opacity-50"></div>
-              {periods.map((p) => (
-                <div key={p.id} className="relative flex items-start gap-6 group">
-                  <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center z-10 border-2 transition-all shrink-0 mt-1 ${p.status === 'DONE' ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg' :
-                      p.status === 'ACTIVE' ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg animate-pulse' :
-                        'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-700 shadow-sm'
-                    }`}>
-                    {p.status === 'DONE' ? <CheckCircle2 size={28} strokeWidth={3} /> : <span className="font-extrabold text-xl">{p.id}</span>}
-                  </div>
-                  <div className="flex-1 p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 group-hover:bg-white dark:group-hover:bg-slate-900 transition-all shadow-sm">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-bold text-slate-900 dark:text-white text-base uppercase tracking-tight">{p.label}</h4>
-                      <span className="text-[11px] font-bold text-slate-400 dark:text-slate-600">{p.time}</span>
+            {periods.length === 0 ? (
+              <div className="py-12 text-center space-y-3">
+                <Calendar size={36} className="mx-auto text-slate-200 dark:text-slate-700" />
+                <p className="text-sm font-bold text-slate-400">No sessions scheduled for today</p>
+              </div>
+            ) : (
+              <div className="space-y-6 relative">
+                <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-slate-100 dark:bg-slate-800 opacity-50"></div>
+                {periods.map((p) => {
+                  // Determine if this attendance was taken late
+                  const periodTiming = PERIOD_TIMINGS.find(t => t.period === p.period);
+                  const isLate = p.status === 'DONE' && p.attendance_taken_late;
+                  
+                  return (
+                    <div key={p.id} className="relative flex items-start gap-6 group">
+                      <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center z-10 border-2 transition-all shrink-0 mt-1 ${p.status === 'DONE' ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg' :
+                          p.status === 'ACTIVE' ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg animate-pulse' :
+                            'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-700 shadow-sm'
+                        }`}>
+                        {p.status === 'DONE' ? <CheckCircle2 size={28} strokeWidth={3} /> : <span className="font-extrabold text-xl">{p.period}</span>}
+                      </div>
+                      <div className="flex-1 p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 group-hover:bg-white dark:group-hover:bg-slate-900 transition-all shadow-sm">
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="font-bold text-slate-900 dark:text-white text-base uppercase tracking-tight">{p.teacher_name || 'TBD'}</h4>
+                          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-600">{p.time}</span>
+                        </div>
+                        <p className="text-sm font-bold text-indigo-500 leading-none">{p.subject}</p>
+                        <div className="flex items-center gap-2 mt-4">
+                          <p className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 w-fit rounded-lg ${p.status === 'DONE' ? 'text-emerald-500 bg-emerald-500/10' : p.status === 'ACTIVE' ? 'text-indigo-600 bg-indigo-600/10' : 'text-slate-400 bg-slate-400/10'}`}>
+                            {p.status === 'DONE' ? 'Verified' : p.status === 'ACTIVE' ? 'Ongoing' : 'Waiting'}
+                          </p>
+                          {/* Late Entry Badge */}
+                          {p.status === 'DONE' && isLate && (
+                            <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 flex items-center gap-1">
+                              <AlertTriangle size={10} /> Late Entry
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm font-bold text-indigo-500 leading-none">{p.subject}</p>
-                    <p className={`text-[10px] mt-4 font-bold uppercase tracking-[0.2em] px-3 py-1 w-fit rounded-lg ${p.status === 'DONE' ? 'text-emerald-500 bg-emerald-500/10' : p.status === 'ACTIVE' ? 'text-indigo-600 bg-indigo-600/10' : 'text-slate-400 bg-slate-400/10'}`}>
-                      {p.status === 'DONE' ? 'Verified' : p.status === 'ACTIVE' ? 'Ongoing' : 'Waiting'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       ) : (
