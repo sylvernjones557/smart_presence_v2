@@ -48,7 +48,7 @@ const Enrollment: React.FC = () => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return resolve(null);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.5);
     });
   }, []);
 

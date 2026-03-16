@@ -14,6 +14,7 @@ import StudentsDirectory from './pages/StudentsDirectory';
 import StaffDirectory from './pages/StaffDirectory';
 import StaffDetail from './pages/StaffDetail';
 import InstitutionalReport from './pages/Reports';
+import TimetableManager from './pages/TimetableManager';
 
 // New Staff Pages
 import StaffHome from './pages/StaffHome';
@@ -120,7 +121,6 @@ const AppContent: React.FC = () => {
 
       // Transform Staff
       const transformedStaff: StaffMember[] = staffData
-        .filter((u: any) => u.role !== 'ADMIN') // Exclude admin from staff list
         .map((u: any) => ({
           id: u.id,
           name: u.full_name || u.name || 'Unknown',
@@ -315,16 +315,19 @@ const AppContent: React.FC = () => {
       />;
       case '/staff': return <StaffDirectory staffList={staffList} onBack={handleBack} onStaffClick={(id) => setSelectedStaffId(id)} />;
       case '/reports': return <InstitutionalReport onBack={handleBack} />;
+      case '/timetable': return <TimetableManager groupList={groupList} onBack={handleBack} />;
       case '/settings': return (
         <SettingsPage
           onBack={handleBack}
           onAddStaff={async (s: any) => {
             try {
-              await data.addStaff(s);
+              const res = await data.addStaff(s);
               toast.showToast('success', 'Staff Added', `New staff member has been registered successfully.`);
               loadGlobalData();
+              return res; // Return the created staff object
             } catch (e: any) {
               toast.showToast('error', 'Failed to Add Staff', e.response?.data?.detail || e.message);
+              throw e;
             }
           }}
           onAddStudent={async (s: any) => {
@@ -336,6 +339,7 @@ const AppContent: React.FC = () => {
               toast.showToast('error', 'Failed to Add Student', e.response?.data?.detail || e.message);
             }
           }}
+          onStaffClick={(id) => setSelectedStaffId(id)}
           staffList={staffList}
           groupList={groupList.length ? groupList : MOCK_CLASSES}
         />

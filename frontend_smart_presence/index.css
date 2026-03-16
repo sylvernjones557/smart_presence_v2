@@ -6,6 +6,15 @@
   --glow-blur: 14px;
   --glow-drop: 12px;
   --label-hover-opacity: 0.85;
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Responsive Font Scaling */
+@media (max-width: 380px) {
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+  .text-3xl { font-size: 1.5rem !important; }
+  .text-2xl { font-size: 1.25rem !important; }
 }
 
 html.dark :root {
@@ -302,4 +311,24 @@ html.dark .nav-glow[data-active="true"] .glow-target {
     opacity: 0.8;
     transform: scale(1.05);
   }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) {
+  .tap-active:active {
+    transform: scale(0.94);
+    transition: transform 0.1s ease;
+  }
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+html.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }

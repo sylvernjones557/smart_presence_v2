@@ -104,13 +104,13 @@ const TimetableModal: React.FC<{ onClose: () => void; staffList?: any[]; groupLi
   ];
 
   return (
-    <div className={`fixed inset-0 z-[300] flex items-end sm:items-center justify-center transition-all duration-300 ${isVisible ? 'bg-black/40 backdrop-blur-md' : 'bg-transparent'}`}>
+    <div className={`fixed inset-0 z-[300] flex items-center justify-center p-4 transition-all duration-300 ${isVisible ? 'bg-black/40 backdrop-blur-md' : 'bg-transparent'}`}>
       <div className="absolute inset-0" onClick={handleClose} />
       <div
         className={`
           relative w-full sm:max-w-xl max-h-[85vh] overflow-hidden flex flex-col
           bg-white dark:bg-slate-950
-          sm:rounded-[2.5rem] rounded-t-[2.5rem]
+          rounded-[2.5rem]
           border border-slate-200 dark:border-slate-800
           shadow-2xl
           transition-all duration-300 ease-out
@@ -259,7 +259,7 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
     total_enrollment: 0,
     avg_latency: 0
   });
-  const [liveClasses, setLiveClasses] = useState<{ id: string, name: string, status: string }[]>([]);
+  const [liveClasses, setLiveClasses] = useState<any[]>([]);
   const [showTimetable, setShowTimetable] = useState(false);
 
   useEffect(() => {
@@ -279,17 +279,17 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <div className="space-y-8 page-enter">
+    <div className="space-y-6 page-enter">
       <div
-        className="bg-slate-950 dark:bg-indigo-600 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group transition-all"
+        className="bg-slate-950 dark:bg-indigo-600 p-6 sm:p-8 rounded-[2.5rem] sm:rounded-[3rem] text-white shadow-2xl relative overflow-hidden group transition-all"
       >
         <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 blur-3xl rounded-full"></div>
         <div className="relative z-10">
-          <div className="flex items-center gap-2.5 mb-5">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <p className="text-white/70 text-[12px] font-bold uppercase tracking-widest">Main Hub</p>
+          <div className="flex items-center gap-2.5 mb-4 sm:mb-5">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <p className="text-white/70 text-[10px] sm:text-[12px] font-bold uppercase tracking-widest">Main Hub</p>
           </div>
-          <h2 className="text-3xl font-black tracking-tight leading-none uppercase mb-8">Home<br />Summary</h2>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-none uppercase mb-6 sm:mb-8">Home Summary</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/10 px-5 py-4 rounded-2xl border border-white/5 backdrop-blur-md">
@@ -348,19 +348,22 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
         </div>
 
         <div className="space-y-4">
-          {liveClasses.map((cls, i) => (
+          {liveClasses.length === 0 ? (
+            <div className="text-center p-6 text-slate-400 text-xs font-bold uppercase tracking-widest bg-slate-50 dark:bg-slate-950/50 rounded-3xl border border-slate-100 dark:border-slate-800 border-dashed">No ongoing classes</div>
+          ) : liveClasses.map((cls: any, i) => (
             <div
-              key={cls.id}
+              key={`${cls.group_id}-${cls.period || i}`}
               onClick={() => onNavigate('/classes')}
               className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 rounded-3xl tap-active group hover:bg-white dark:hover:bg-slate-900 transition-all"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center font-black text-slate-600 dark:text-white text-base">
-                  {i + 1}
+                <div className="w-12 h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center font-black text-slate-600 dark:text-white text-base">
+                  <span className="leading-none">{cls.period || i+1}</span>
+                  {cls.period && <span className="text-[6px] text-slate-400 uppercase mt-0.5 leading-none">PD</span>}
                 </div>
                 <div>
-                  <p className="text-base font-bold text-slate-900 dark:text-slate-200">{cls.name}</p>
-                  <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-widest">Ongoing</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-slate-200">{cls.group_name || cls.name || 'Unknown Class'}</p>
+                  <p className="text-[11px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">{cls.subject ? `${cls.subject} • ${cls.teacher_name}` : 'Ongoing'}</p>
                 </div>
               </div>
               <ChevronRight size={20} className="text-slate-300 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
@@ -369,10 +372,11 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <QuickAction label="Classes" icon={Layers} color="bg-amber-600" onClick={() => onNavigate('/classes')} />
         <QuickAction label="Students" icon={Users} color="bg-blue-600" onClick={() => onNavigate('/students')} />
         <QuickAction label="Teachers" icon={GraduationCap} color="bg-purple-600" onClick={() => onNavigate('/staff')} />
+        <QuickAction label="Schedule" icon={CalendarDays} color="bg-emerald-600" onClick={() => onNavigate('/timetable')} />
       </div>
 
       {/* Timetable Modal */}

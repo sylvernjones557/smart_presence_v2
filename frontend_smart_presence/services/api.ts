@@ -71,8 +71,26 @@ export const data = {
         return response.data;
     },
     getStaffActivity: async (staffId: string) => {
-        const response = await api.get(`/attendance/history/weekly/${staffId}`);
-        return response.data;
+        try {
+            const response = await api.get(`/attendance/history/weekly/${staffId}`);
+            const raw = response.data;
+            // Backend returns { staff_id, week: [{date, total_present, total_students, ...}] }
+            // Frontend chart expects [{ day, attendance }]
+            const weekData = raw?.week || raw || [];
+            if (!Array.isArray(weekData)) return [];
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            return weekData.map((entry: any) => {
+                const d = entry.date ? new Date(entry.date) : null;
+                const dayLabel = d ? dayNames[d.getDay()] : entry.day || '?';
+                const pct = entry.total_students > 0
+                    ? Math.round((entry.total_present / entry.total_students) * 100)
+                    : 0;
+                return { day: dayLabel, attendance: pct };
+            });
+        } catch (e) {
+            console.error("Failed to fetch staff activity", e);
+            return [];
+        }
     },
     getClassSchedule: async (classId: string) => {
         const response = await api.get(`/classes/${classId}/schedule/today`);
@@ -144,15 +162,31 @@ export const data = {
         return response.data;
     },
     getTimetable: async (params?: { staff_id?: string; group_id?: string; day_of_week?: number }) => {
-        const response = await api.get('/timetable/', { params });
+        const response = await api.get('/timetable-engine/', { params });
         return response.data;
     },
     addTimetableEntry: async (entry: { group_id: string; staff_id?: string; day_of_week: number; period: number; subject: string; start_time?: string; end_time?: string }) => {
-        const response = await api.post('/timetable/', entry);
+        const response = await api.post('/timetable-engine/', entry);
         return response.data;
     },
     getClassScheduleToday: async (classId: string) => {
         const response = await api.get(`/classes/${classId}/schedule/today`);
+        return response.data;
+    },
+    checkStaffAvailability: async (day: number, period: number, subject?: string) => {
+        const response = await api.post('/timetable-engine/intelligent-availability', {
+            day_of_week: day,
+            period,
+            subject
+        });
+        return response.data;
+    },
+    addTimetable: async (entry: any) => {
+        const response = await api.post('/timetable-engine/', entry);
+        return response.data;
+    },
+    deleteTimetable: async (entryId: string) => {
+        const response = await api.delete(`/timetable-engine/entry/${entryId}`);
         return response.data;
     }
 };

@@ -71,6 +71,14 @@ const ClassAttendance: React.FC<ClassAttendanceProps> = ({ isManualDay, preSelec
     return studentList.filter(s => s.classId === selectedClass.id);
   }, [selectedClass, studentList]);
 
+  // ANYTIME ATTENDANCE LOGIC: If it's a test class, we can ALWAYS start session.
+  // We send a signal to the backend or handle it via local overrides.
+  const canTakeAttendance = useMemo(() => {
+    if (!selectedClass) return false;
+    if (isTestClass(selectedClass)) return true;
+    return true; // For now, allowing all class attendance, but usually we'd check schedule here.
+  }, [selectedClass]);
+
   // Filter for search in manual mode
   const filteredStudents = useMemo(() => {
     return classStudents.filter(s => 
@@ -107,6 +115,7 @@ const ClassAttendance: React.FC<ClassAttendanceProps> = ({ isManualDay, preSelec
     setSessionError(null);
 
     try {
+      // If it's a test class, the backend start_session logic already force-resets active sessions.
       await attendanceApi.startSession(selectedClass.id);
       setSessionActive(true);
       setIsScanning(true);
@@ -234,37 +243,37 @@ const ClassAttendance: React.FC<ClassAttendanceProps> = ({ isManualDay, preSelec
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-1">
           {groupList.map(cls => {
             const testCls = isTestClass(cls);
             return (
               <button 
                 key={cls.id}
                 onClick={() => setSelectedClass(cls)}
-                className={`p-7 rounded-[2.5rem] border shadow-sm flex items-center justify-between group tap-active transition-all duration-300 ${
+                className={`p-6 sm:p-7 rounded-[2.5rem] border shadow-sm flex items-center justify-between group tap-active transition-all duration-300 ${
                   testCls
-                    ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/40'
+                    ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/40 ring-2 ring-amber-500/20'
                     : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'
                 }`}
               >
-                <div className="flex items-center gap-6">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all group-hover:scale-105 shadow-sm ${
+                <div className="flex items-center gap-5 sm:gap-6">
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all group-hover:scale-105 shadow-sm ${
                     testCls
                       ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white'
                       : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-500'
                   }`}>
-                    {testCls ? <Sparkles size={24} /> : <Layers size={24} />}
+                    {testCls ? <Sparkles size={22} /> : <Layers size={22} />}
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">{cls.name}</h3>
-                    <p className={`text-[10px] font-bold uppercase mt-2.5 ${
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight leading-none">{cls.name}</h3>
+                    <p className={`text-[9px] sm:text-[10px] font-bold uppercase mt-2 ${
                       testCls ? 'text-amber-500 dark:text-amber-400' : 'text-indigo-500 dark:text-indigo-400'
                     }`}>
-                      {testCls ? 'All Students • No Schedule Limits' : `Code ${cls.code || cls.id}`}
+                      {testCls ? 'ANYTIME ATTENDANCE • ALL STUDENTS' : `Code ${cls.code || cls.id}`}
                     </p>
                   </div>
                 </div>
-                <ChevronRight size={20} strokeWidth={3} className="text-slate-200 dark:text-slate-800 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
+                <ChevronRight size={18} strokeWidth={3} className="text-slate-200 dark:text-slate-800 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
               </button>
             );
           })}

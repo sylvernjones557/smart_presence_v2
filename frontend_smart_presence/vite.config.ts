@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
         proxy: {
-          // All API calls and health checks are forwarded to the backend
+          // Backend API
           '/api': {
             target: 'http://127.0.0.1:8000',
             changeOrigin: true,
@@ -19,6 +19,32 @@ export default defineConfig(({ mode }) => {
           },
           '/health': {
             target: 'http://127.0.0.1:8000',
+            changeOrigin: true,
+            secure: false,
+          },
+          // MCP Server endpoints (runs on 3100)
+          '/sse': {
+            target: 'http://127.0.0.1:3100',
+            changeOrigin: true,
+            secure: false,
+          },
+          '/message': {
+            target: 'http://127.0.0.1:3100',
+            changeOrigin: true,
+            secure: false,
+          },
+          '/jsonrpc': {
+            target: 'http://127.0.0.1:3100',
+            changeOrigin: true,
+            secure: false,
+          },
+          '/tools': {
+            target: 'http://127.0.0.1:3100',
+            changeOrigin: true,
+            secure: false,
+          },
+          '/workflows': {
+            target: 'http://127.0.0.1:3100',
             changeOrigin: true,
             secure: false,
           },
