@@ -192,8 +192,8 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
 
       {/* Assignment Modal (Glassmorphism) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
-           <div className="bg-white dark:bg-[#020617] w-full max-w-lg rounded-[3rem] p-8 border border-slate-200 dark:border-white/10 shadow-2xl space-y-8 animate-in slide-in-from-bottom-10 duration-500 max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
+           <div className="bg-white dark:bg-[#020617] w-full max-w-lg rounded-[2.5rem] p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-2xl space-y-6 sm:space-y-8 animate-in slide-in-from-bottom-10 duration-500 max-h-[90vh] overflow-y-auto no-scrollbar">
               <div className="flex justify-between items-start">
                  <div>
                    <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Assign Slot</h3>
@@ -207,7 +207,8 @@ const TimetableManager: React.FC<TimetableManagerProps> = ({ onBack, groupList }
               </div>
 
               <div className="space-y-4">
-                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject Title</p>                  <div className="relative">
+                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject Title</p>                  
+                 <div className="relative">
                      <BookOpen size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-600" />
                      <input 
                        type="text" 

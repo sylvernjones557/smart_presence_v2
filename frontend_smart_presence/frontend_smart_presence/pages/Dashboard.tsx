@@ -104,13 +104,13 @@ const TimetableModal: React.FC<{ onClose: () => void; staffList?: any[]; groupLi
   ];
 
   return (
-    <div className={`fixed inset-0 z-[300] flex items-end sm:items-center justify-center transition-all duration-300 ${isVisible ? 'bg-black/40 backdrop-blur-md' : 'bg-transparent'}`}>
+    <div className={`fixed inset-0 z-[300] flex items-center justify-center p-4 transition-all duration-300 ${isVisible ? 'bg-black/40 backdrop-blur-md' : 'bg-transparent'}`}>
       <div className="absolute inset-0" onClick={handleClose} />
       <div
         className={`
           relative w-full sm:max-w-xl max-h-[85vh] overflow-hidden flex flex-col
           bg-white dark:bg-slate-950
-          sm:rounded-[2.5rem] rounded-t-[2.5rem]
+          rounded-[2.5rem]
           border border-slate-200 dark:border-slate-800
           shadow-2xl
           transition-all duration-300 ease-out
