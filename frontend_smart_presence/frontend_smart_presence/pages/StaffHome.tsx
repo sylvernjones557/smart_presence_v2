@@ -254,9 +254,9 @@ const StaffHome: React.FC<StaffHomeProps> = ({ user, onNavigate, groupList = [] 
 
       {/* Weekly Timetable Popup */}
       {showTimetable && (
-        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
           <div className="absolute inset-0" onClick={() => setShowTimetable(false)} />
-          <div className="relative w-full sm:max-w-lg max-h-[82vh] overflow-hidden flex flex-col bg-white dark:bg-slate-950 sm:rounded-[2.5rem] rounded-t-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-bottom-6 duration-300">
+          <div className="relative w-full sm:max-w-lg max-h-[82vh] overflow-hidden flex flex-col bg-white dark:bg-slate-950 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-bottom-6 duration-300">
             {/* Header */}
             <div className="shrink-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 p-6 flex items-center justify-between z-10">
               <div className="flex items-center gap-3">
