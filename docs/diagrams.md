@@ -1,4 +1,4 @@
-# Smart Presence System Mermaid Diagrams
+# Smart Presence V4 Premium System Mermaid Diagrams
 
 ## 1. Global Architectural Diagram
 ```mermaid

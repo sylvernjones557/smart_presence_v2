@@ -1,4 +1,4 @@
-# ✨ Smart Presence Frontend Guide
+# ✨ Smart Presence V4 Premium Frontend Guide
 
 The frontend is a beautifully crafted, responsive Progressive Web App (PWA). Built with **React 19**, **TypeScript**, and **Vite**, it utilizes "Liquid Glass" styling and dynamic micro-animations to achieve a truly premium user experience.
 

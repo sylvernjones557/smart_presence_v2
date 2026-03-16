@@ -1,4 +1,4 @@
-# ⚙️ Smart Presence Backend Guide
+# ⚙️ Smart Presence V4 Premium Backend Guide
 
 The backend is the engine of Smart Presence. It is a high-performance **FastAPI** application that orchestrates the SQLite relational database, the ChromaDB vector database, and the CPU-optimized InsightFace machine learning engine.
 

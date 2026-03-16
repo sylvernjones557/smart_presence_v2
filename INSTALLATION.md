@@ -1,6 +1,6 @@
-# 🛠️ Smart Presence Installation & Setup Guide
+# 🛠️ Smart Presence V4 Premium Installation & Setup Guide
 
-This guide provides step-by-step instructions to get the **Smart Presence** ecosystem running on your local machine.
+This guide provides step-by-step instructions to get the **Smart Presence V4 Premium** ecosystem running on your local machine.
 
 ---
 

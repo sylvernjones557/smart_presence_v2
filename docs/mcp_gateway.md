@@ -1,6 +1,6 @@
-# 🤖 MCP Gateway Guide
+# 🤖 MCP Gateway Guide - Smart Presence V4 Premium
 
-Smart Presence is proud to be the **World’s First Biometric Attendance System** built specifically with AI Agents in mind from day zero. 
+Smart Presence V4 Premium is proud to be the **World’s First Biometric Attendance System** built specifically with AI Agents in mind from day zero. 
 
 By integrating a **Model Context Protocol (MCP)** server natively into the ecosystem, your favorite Large Language Models (LLMs like ChatGPT, Claude, etc.) can "speak" directly to your database as if they were a school administrator.
 

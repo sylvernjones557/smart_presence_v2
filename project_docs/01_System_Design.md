@@ -1,4 +1,4 @@
-# System Design
+# Smart Presence V4 Premium System Design
 
 ## 3.1 Architectural Design
 The architecture follows a Zero-Cloud paradigm where the edge node handles both user inferfacing and ML processing locally, ensuring no biometric data leaves the premise.

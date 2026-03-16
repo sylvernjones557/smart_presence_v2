@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ Smart Presence
+# 🛡️ Smart Presence V4 Premium
 **The Ultimate Offline-First, AI-Powered Biometric Attendance System**
 
 [![Developer](https://img.shields.io/badge/Developer-Sylvester--Jones-blue?style=for-the-badge&logo=github)](https://github.com/sylvernjones557)

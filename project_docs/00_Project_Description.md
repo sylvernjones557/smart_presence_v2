@@ -1,7 +1,7 @@
 # Project Description & System Development
 
 ## 4. Project Description
-Smart Presence is a highly secure, offline-first attendance management system powered by AI facial recognition. This zero-cloud system runs completely locally to ensure maximum data privacy for institutions like schools and corporate offices. By using pre-trained computer vision models, Smart Presence can recognize students in a live camera feed and mark them present in real-time. It completely replaces inefficient roll-calling and legacy RFID systems. The system also includes complete Timetable management, a Live Dashboard for staff availability, and built-in Agentic workflows utilizing the Model Context Protocol (MCP).
+Smart Presence V4 Premium is a highly secure, offline-first attendance management system powered by AI facial recognition. This zero-cloud system runs completely locally to ensure maximum data privacy for institutions like schools and corporate offices. By using pre-trained computer vision models, Smart Presence can recognize students in a live camera feed and mark them present in real-time. It completely replaces inefficient roll-calling and legacy RFID systems. The system also includes complete Timetable management, a Live Dashboard for staff availability, and built-in Agentic workflows utilizing the Model Context Protocol (MCP).
 
 ## 5. System Development 
 

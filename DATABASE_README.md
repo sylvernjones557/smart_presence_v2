@@ -1,4 +1,4 @@
-# Smart Presence Database Architecture
+# Smart Presence V4 Premium Database Architecture
 
 This document provides a visualization and overview of the SQLite relational database architecture used by the Smart Presence backend.
 
