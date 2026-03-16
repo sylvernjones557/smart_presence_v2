@@ -13,7 +13,7 @@ interface LayoutProps {
 
 // Notification data
 const NOTIFICATIONS = [
-  { id: 1, type: 'info' as const, title: 'System Update', message: 'Smart Presence v2.0 has been deployed with new features.', time: '2m ago', read: false },
+  { id: 1, type: 'info' as const, title: 'System Update', message: 'Smart Presence V4 Premium has been deployed with new features.', time: '2m ago', read: false },
   { id: 2, type: 'success' as const, title: 'Attendance Synced', message: 'All class attendance records have been synced to the cloud.', time: '15m ago', read: false },
   { id: 3, type: 'warning' as const, title: 'Low Attendance', message: 'BCA 2nd Year has below 75% attendance this week.', time: '1h ago', read: false },
   { id: 4, type: 'info' as const, title: 'New Staff Added', message: 'A new staff member has been registered in the system.', time: '3h ago', read: true },
@@ -198,7 +198,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, activePath, o
       <footer className="w-full py-10 px-6 flex flex-col items-center justify-center gap-4 text-center">
         <div className="h-px w-24 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent mb-2" />
         <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
-          Smart Presence v3.0
+          Smart Presence V4 Premium
         </p>
         <p className="text-[12px] font-bold text-slate-500 dark:text-slate-400">
           Developed with ❤️ by <a href="https://github.com/sylvernjones557" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">Sylvester Jones</a>

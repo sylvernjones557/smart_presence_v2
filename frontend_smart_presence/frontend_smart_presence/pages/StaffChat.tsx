@@ -74,7 +74,7 @@ const StaffChat: React.FC<StaffChatProps> = ({ onBack, targetName = "Secure Chan
 
       {/* Versioning Footer */}
       <footer className="p-10 text-center relative z-10 opacity-30">
-        <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.4em]">Smart Presence Communications v2.0</p>
+        <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.4em]">Smart Presence Communications V4 Premium</p>
       </footer>
     </div>
   );
