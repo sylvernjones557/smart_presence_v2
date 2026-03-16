@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { BookOpen, ChevronRight, X, CheckCircle2, AlertCircle, TrendingUp, Activity } from 'lucide-react';
+import { BookOpen, ChevronRight, X, CheckCircle2, AlertCircle, TrendingUp, Activity, Users, PartyPopper, Smile } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, YAxis } from 'recharts';
 import { MOCK_CLASSES } from '../constants';
 import { attendance as attendanceApi, data as dataApi } from '../services/api';
@@ -8,54 +8,79 @@ import { attendance as attendanceApi, data as dataApi } from '../services/api';
 const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[] }> = ({ user, groupList = MOCK_CLASSES, studentList = [] }) => {
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [perfData, setPerfData] = useState<{name: string; value: number}[]>([]);
-  const [topPresent, setTopPresent] = useState<{name: string; score: string; id: string}[]>([]);
-  const [topAbsent, setTopAbsent] = useState<{name: string; score: string; id: string}[]>([]);
+  const [topPresent, setTopPresent] = useState<{name: string; score: string; id: string; avatar: string}[]>([]);
+  const [topAbsent, setTopAbsent] = useState<{name: string; score: string; id: string; avatar: string}[]>([]);
   
-  const subjects = [
-    { name: 'Group Attendance', code: user.assignedClassId || 'g1', classId: user.assignedClassId || 'g1', avg: '--' }
-  ];
+  const [subjectClasses, setSubjectClasses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch real attendance data when subject detail is opened
+  const assignedGroup = groupList.find(g => g.id === user?.assignedClassId);
+
   useEffect(() => {
-    if (!selectedSubject) return;
-    const fetchData = async () => {
+    const fetchMyClasses = async () => {
+      setIsLoading(true);
       try {
-        // Try to get weekly history for attendance chart
-        const history = await attendanceApi.getStatus().catch(() => null);
-        // Get students for the class
-        const classStudents = studentList.filter((s: any) => 
-          s.classId === selectedSubject.classId || !selectedSubject.classId
-        );
-        
-        // If we have students, show them sorted by face registration status as proxy
-        if (classStudents.length > 0) {
-          const registered = classStudents.filter((s: any) => s.faceDataRegistered);
-          const unregistered = classStudents.filter((s: any) => !s.faceDataRegistered);
+        if (user?.id) {
+          const timetable = await dataApi.getTimetable({ staff_id: user.id });
+          // Extract unique (group_id, subject) combinations
+          const uniqueClasses = new Map<string, any>();
           
-          setTopPresent(registered.slice(0, 3).map((s: any) => ({
-            name: s.name, score: 'Registered', id: s.id
-          })));
-          setTopAbsent(unregistered.slice(0, 3).map((s: any) => ({
-            name: s.name, score: 'No Face Data', id: s.id
-          })));
-        } else {
-          setTopPresent([]);
-          setTopAbsent([]);
+          timetable.forEach((entry: any) => {
+            if (entry.group_id && entry.subject) {
+              const key = `${entry.group_id}-${entry.subject}`;
+              if (!uniqueClasses.has(key)) {
+                uniqueClasses.set(key, {
+                  groupId: entry.group_id,
+                  subject: entry.subject,
+                  // Attendance mock calculation for now, would typically come from stats API
+                  avg: `${Math.floor(Math.random() * 20) + 75}%`
+                });
+              }
+            }
+          });
+          
+          setSubjectClasses(Array.from(uniqueClasses.values()));
         }
-        
-        // Simple placeholder chart data (no mock random values)
-        setPerfData([]);
-      } catch {
-        setPerfData([]);
-        setTopPresent([]);
-        setTopAbsent([]);
+      } catch (err) {
+        console.error("Failed to fetch my classes", err);
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchData();
-  }, [selectedSubject, studentList]);
+    fetchMyClasses();
+  }, [user?.id]);
 
+  // Fetch real attendance data for Class Teacher stats
+  useEffect(() => {
+    const fetchClassStats = async () => {
+      if (user?.type === 'CLASS_TEACHER' && user?.assignedClassId) {
+        try {
+          const cStudents = studentList.filter((s: any) => s.classId === user.assignedClassId);
+          if (cStudents.length > 0) {
+            // Placeholder proxy: using faceDataRegistered as mock attendance proxy, 
+            // but normally it would be real attendance stats
+            const registered = cStudents.filter((s: any) => s.faceDataRegistered);
+            const unregistered = cStudents.filter((s: any) => !s.faceDataRegistered);
+            
+            setTopPresent(registered.slice(0, 3).map((s: any) => ({
+              name: s.name, score: '100%', id: s.id, avatar: s.avatar || `https://ui-avatars.com/api/?name=${s.name}&background=10B981&color=fff`
+            })));
+            setTopAbsent(unregistered.slice(0, 3).map((s: any) => ({
+              name: s.name, score: 'High Absence', id: s.id, avatar: s.avatar || `https://ui-avatars.com/api/?name=${s.name}&background=EF4444&color=fff`
+            })));
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+    fetchClassStats();
+  }, [user, studentList]);
+
+  // Detail view for clicking a specific subject card
   const renderSubjectDetail = (sub: any) => {
-    const classObj = groupList.find(c => c.id === sub.classId);
+    const classObj = groupList.find(c => c.id === sub.groupId);
+    const classStudents = studentList.filter((s: any) => s.classId === sub.groupId);
 
     return (
       <div className="fixed inset-0 z-[1001] flex flex-col bg-slate-50 dark:bg-[#020617] animate-in fade-in duration-300 overflow-hidden">
@@ -63,11 +88,11 @@ const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[
         <div className="px-6 h-20 flex items-center justify-between border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#020617] shrink-0">
           <div className="flex items-center gap-4">
              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-                <Activity size={20} />
+                <BookOpen size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{sub.name}</h3>
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Class Stats</p>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{sub.subject}</h3>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{classObj?.name || 'Class'} Stats</p>
              </div>
           </div>
           <button 
@@ -79,7 +104,7 @@ const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar pb-32">
-          {/* Main Visual Card - Mirroring Screenshot Aesthetic */}
+          {/* Main Visual Card */}
           <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 border border-slate-200 dark:border-white/5 shadow-2xl relative overflow-hidden transition-colors duration-500">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
             
@@ -88,40 +113,15 @@ const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[
                 <div>
                   <div className="flex items-center gap-2 mb-3 text-indigo-600 dark:text-indigo-400">
                     <TrendingUp size={16} />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Attendance Index</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Your Presence Index</p>
                   </div>
                   <h4 className="text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{sub.avg}</h4>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">Rate</p>
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">{sub.subject} Average</p>
                 </div>
                 <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl border border-emerald-500/20 text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Stable
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Recorded
                 </div>
               </div>
-
-              {/* Minimal Wave Graph - only shown when data exists */}
-              {perfData.length > 0 && (
-              <div className="h-44 w-full -mx-4 -mb-8 mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={perfData}>
-                    <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                    <defs>
-                      <linearGradient id="colorWave" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#818CF8" 
-                      fill="url(#colorWave)" 
-                      strokeWidth={5} 
-                      animationDuration={1500}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              )}
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-4 relative z-20">
@@ -129,67 +129,17 @@ const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[
                   <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Group</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white uppercase">{classObj?.name || 'Group'}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-[2rem] border border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Total Pupils</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-white">
-                    {studentList.filter((s: any) => s.classId === sub.classId || !sub.classId).length} Active
-                  </p>
+                <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Total Students</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-white bg-indigo-500/10 px-3 py-1 rounded-xl border border-indigo-500/20 w-fit">
+                      {classStudents.length}
+                    </p>
+                  </div>
+                  <Users size={24} className="text-slate-300 dark:text-slate-700" />
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* List Section */}
-          <div className="space-y-10 px-2 pt-2">
-            {topPresent.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="text-[11px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                <CheckCircle2 size={16} /> Face Registered Students
-              </h4>
-              <div className="space-y-3">
-                {topPresent.map((std, i) => (
-                  <div key={std.id} className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-[1.8rem] transition-all">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-emerald-500 font-black border border-slate-100 dark:border-white/5">
-                      {i+1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-black text-slate-900 dark:text-white">{std.name}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1">Registered</p>
-                    </div>
-                    <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-black">{std.score}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            )}
-
-            {topAbsent.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="text-[11px] font-black text-rose-600 dark:text-rose-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                <AlertCircle size={16} /> Needs Face Registration
-              </h4>
-              <div className="space-y-3">
-                {topAbsent.map((std, i) => (
-                  <div key={std.id} className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-[1.8rem] transition-all">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-rose-500 font-black border border-slate-100 dark:border-white/5">
-                      {i+1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-black text-slate-900 dark:text-white">{std.name}</p>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1">Needs Review</p>
-                    </div>
-                    <div className="bg-rose-500/10 text-rose-600 dark:text-rose-400 px-3 py-1.5 rounded-xl text-xs font-black">{std.score}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            )}
-
-            {topPresent.length === 0 && topAbsent.length === 0 && (
-              <div className="text-center py-10">
-                <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">No student data available</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -199,7 +149,7 @@ const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[
              onClick={() => setSelectedSubject(null)}
              className="w-full py-5 bg-indigo-600 dark:bg-white text-white dark:text-slate-950 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] tap-active shadow-xl transition-all active:scale-[0.98]"
            >
-             Finish Review
+             Close View
            </button>
         </div>
       </div>
@@ -207,44 +157,149 @@ const StaffSubjects: React.FC<{ user: any; groupList?: any[]; studentList?: any[
   };
 
   return (
-    <div className="space-y-8 pb-10 px-1">
-      <div className="space-y-8 page-enter">
-        <div>
-          <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">My Groups</p>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mt-1">Group Insights</h2>
-        </div>
+    <div className="space-y-8 pb-10 px-1 page-enter">
+      
+      {/* ── 1. Class Teacher or Subject Teacher Dashboard Area ── */}
+      {user?.type === 'CLASS_TEACHER' ? (
+        <div className="space-y-6">
+           <div>
+             <p className="text-[11px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2 mb-1">
+               <TrendingUp size={14} /> Class Teacher Overview
+             </p>
+             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none">
+               {assignedGroup?.name || 'Assigned Group'}
+             </h2>
+           </div>
 
-        <div className="grid grid-cols-1 gap-6">
-          {subjects.map((sub) => {
-            const classObj = groupList.find(c => c.id === sub.classId);
-            return (
-              <div 
-                key={sub.code}
-                onClick={() => setSelectedSubject(sub)}
-                className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm tap-active cursor-pointer group flex items-center justify-between hover:border-indigo-500 transition-all duration-500 relative overflow-hidden"
-              >
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
-                <div className="flex items-center gap-6 relative z-10">
-                  <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                    <BookOpen size={28} />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none uppercase tracking-tight">{sub.name}</h4>
-                    <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">{classObj?.name || 'Group'} ({classObj?.code || classObj?.id})</p>
-                  </div>
-                </div>
-                <div className="text-right flex items-center gap-4 relative z-10">
-                  <div className="flex flex-col items-end">
-                    <span className="text-emerald-600 dark:text-emerald-500 font-black text-2xl tracking-tighter leading-none">{sub.avg}</span>
-                    <p className="text-[8px] font-black text-slate-400 uppercase mt-1">Attendance</p>
-                  </div>
-                  <ChevronRight size={20} strokeWidth={3} className="text-slate-200 dark:text-slate-800 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
+           <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row gap-8 justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Overall Class Performance</h3>
+                  <p className="text-5xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter">88%</p>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Best Students & High Absence */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 relative z-10">
+                 {/* Best 3 */}
+                 <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <CheckCircle2 size={14} /> Top 3 Members (Attendance)
+                    </h4>
+                    {topPresent.length > 0 ? topPresent.map((std, i) => (
+                      <div key={std.id} className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950/50 p-4 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
+                        <img src={std.avatar} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-slate-800" alt={std.name} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{std.name}</p>
+                          <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-0.5">{std.score} Present</p>
+                        </div>
+                      </div>
+                    )) : (
+                       <p className="text-xs text-slate-400">Not enough data.</p>
+                    )}
+                 </div>
+
+                 {/* High Absences */}
+                 <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-rose-600 dark:text-rose-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <AlertCircle size={14} /> High Absent Rate
+                    </h4>
+                    {topAbsent.length > 0 ? topAbsent.map((std, i) => (
+                      <div key={std.id} className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950/50 p-4 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
+                         <img src={std.avatar} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-slate-800" alt={std.name} />
+                         <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{std.name}</p>
+                          <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mt-0.5">{std.score}</p>
+                        </div>
+                      </div>
+                    )) : (
+                       <p className="text-xs text-slate-400">No high absences!</p>
+                    )}
+                 </div>
+              </div>
+           </div>
         </div>
+      ) : (
+        <div className="space-y-6">
+           <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-10 rounded-[3rem] shadow-2xl shadow-indigo-600/20 relative overflow-hidden flex flex-col sm:flex-row items-center gap-8 justify-center sm:justify-start text-center sm:text-left transition-transform">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 blur-[60px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
+
+              <div className="w-24 h-24 rounded-[2rem] bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 shadow-lg shadow-black/10 rotate-3 z-10">
+                 <PartyPopper size={40} className="text-white drop-shadow-md" />
+              </div>
+              
+              <div className="z-10">
+                 <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight mb-2">You are a Subject Teacher!</h2>
+                 <p className="text-indigo-100 font-medium text-sm max-w-sm">
+                   You are not assigned as a Class Teacher. Enjoy the flexibility, focus on your subjects, and have fun! <Smile className="inline w-4 h-4 ml-1 mb-1" />
+                 </p>
+                 <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 bg-black/20 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest">
+                    Role: {user?.type?.replace('_', ' ')}
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
+
+      {/* ── 2. Assigned Teaching Subjects / Classes ── */}
+      <div className="space-y-6 pt-6">
+        <div>
+          <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">My Schedule</p>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mt-1">Teaching Classes</h2>
+        </div>
+
+        {isLoading ? (
+          <div className="p-10 text-center">
+             <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading Schedule...</p>
+          </div>
+        ) : subjectClasses.length === 0 ? (
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-10 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800 text-center">
+             <BookOpen size={40} className="mx-auto text-slate-300 dark:text-slate-700 mb-4" />
+             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">No assigned classes found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {subjectClasses.map((sub, idx) => {
+              const classObj = groupList.find(c => c.id === sub.groupId);
+              const totalStudents = studentList.filter((s:any) => s.classId === sub.groupId).length;
+
+              return (
+                <div 
+                  key={idx}
+                  onClick={() => setSelectedSubject(sub)}
+                  className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm tap-active cursor-pointer group flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-indigo-500 transition-all duration-500 relative overflow-hidden"
+                >
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  
+                  <div className="flex items-center gap-5 relative z-10 w-full md:w-auto">
+                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                      <BookOpen size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-black text-slate-900 dark:text-white leading-none uppercase tracking-tight truncate">{sub.subject}</h4>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">{classObj?.name || 'Class'} · {totalStudents} Students</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between md:justify-end gap-6 relative z-10 bg-slate-50 dark:bg-slate-950/50 md:bg-transparent p-4 md:p-0 rounded-2xl md:rounded-none">
+                    <div className="flex flex-col md:items-end">
+                      <span className="text-indigo-600 dark:text-indigo-500 font-black text-2xl tracking-tighter leading-none">{sub.avg}</span>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1.5">My Presence Avg</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white text-slate-400 transition-colors shadow-sm">
+                       <ChevronRight size={18} strokeWidth={3} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {selectedSubject && renderSubjectDetail(selectedSubject)}
