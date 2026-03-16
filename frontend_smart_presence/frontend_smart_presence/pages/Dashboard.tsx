@@ -259,7 +259,7 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
     total_enrollment: 0,
     avg_latency: 0
   });
-  const [liveClasses, setLiveClasses] = useState<{ id: string, name: string, status: string }[]>([]);
+  const [liveClasses, setLiveClasses] = useState<any[]>([]);
   const [showTimetable, setShowTimetable] = useState(false);
 
   useEffect(() => {
@@ -348,19 +348,22 @@ const AdminDashboard: React.FC<DashboardProps> = ({ studentCount, staffCount, on
         </div>
 
         <div className="space-y-4">
-          {liveClasses.map((cls, i) => (
+          {liveClasses.length === 0 ? (
+            <div className="text-center p-6 text-slate-400 text-xs font-bold uppercase tracking-widest bg-slate-50 dark:bg-slate-950/50 rounded-3xl border border-slate-100 dark:border-slate-800 border-dashed">No ongoing classes</div>
+          ) : liveClasses.map((cls: any, i) => (
             <div
-              key={cls.id}
+              key={`${cls.group_id}-${cls.period || i}`}
               onClick={() => onNavigate('/classes')}
               className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 rounded-3xl tap-active group hover:bg-white dark:hover:bg-slate-900 transition-all"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center font-black text-slate-600 dark:text-white text-base">
-                  {i + 1}
+                <div className="w-12 h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center font-black text-slate-600 dark:text-white text-base">
+                  <span className="leading-none">{cls.period || i+1}</span>
+                  {cls.period && <span className="text-[6px] text-slate-400 uppercase mt-0.5 leading-none">PD</span>}
                 </div>
                 <div>
-                  <p className="text-base font-bold text-slate-900 dark:text-slate-200">{cls.name}</p>
-                  <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-widest">Ongoing</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-slate-200">{cls.group_name || cls.name || 'Unknown Class'}</p>
+                  <p className="text-[11px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">{cls.subject ? `${cls.subject} • ${cls.teacher_name}` : 'Ongoing'}</p>
                 </div>
               </div>
               <ChevronRight size={20} className="text-slate-300 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
